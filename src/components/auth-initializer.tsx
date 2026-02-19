@@ -2,21 +2,24 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useAuth, useUser, initiateAnonymousSignIn } from '@/firebase';
+import { useAuth, useUser } from '@/firebase';
+import { useRouter, usePathname } from 'next/navigation';
 
 /**
- * Initialise une session anonyme automatiquement si aucun utilisateur n'est connecté.
- * Cela garantit que les fonctionnalités Firestore liées à l'utilisateur (comme les paramètres) fonctionnent immédiatement.
+ * Gère la redirection des utilisateurs non connectés.
+ * Si l'utilisateur n'est pas sur la page de login et n'est pas connecté,
+ * il est redirigé vers /login.
  */
 export function AuthInitializer() {
-  const auth = useAuth();
   const { user, isUserLoading } = useUser();
+  const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
-    if (!isUserLoading && !user && auth) {
-      initiateAnonymousSignIn(auth);
+    if (!isUserLoading && !user && pathname !== '/login') {
+      router.push('/login');
     }
-  }, [user, isUserLoading, auth]);
+  }, [user, isUserLoading, pathname, router]);
 
   return null;
 }
