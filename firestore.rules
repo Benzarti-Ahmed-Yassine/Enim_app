@@ -3,73 +3,38 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * TEMP-ALERT SECURITY RULES ANALYSIS & PHILOSOPHY
-     * 
-     * CORE PHILOSOPHY:
-     * This ruleset enforces a strict User-Ownership model. Access is fundamentally 
-     * restricted based on the authenticated user's ID (UID), ensuring that users 
-     * can only interact with their own data.
-     * 
-     * DATA STRUCTURE:
-     * All application data is logically and physically nested under a user-specific 
-     * root: /users/{userId}/...
-     * - /users/{userId}/settings/current: A singleton document for user preferences.
-     * - /users/{userId}/temperatureMeasurements: A collection of historical readings.
-     * - /users/{userId}/alertEvents: A collection of triggered alert logs.
+     * TEMP-ALERT SECURITY RULES
+     * Modèle de propriété stricte : Un utilisateur ne peut accéder qu'à ses propres données.
      */
 
-    // --- HELPER FUNCTIONS ---
-
-    /** Checks if the request is from a signed-in user. */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /** Checks if the authenticated user matches the provided userId from the path. */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    /** 
-     * Checks if the authenticated user owns the existing document.
-     */
-    function isExistingOwner(userId, ownerField) {
-      return isOwner(userId) && resource != null && resource.data[ownerField] == userId;
+    // Groupe toutes les règles par utilisateur pour plus de clarté et de fiabilité
+    match /users/{userId} {
+      
+      // Paramètres (document unique 'current')
+      match /settings/current {
+        allow read, write: if isOwner(userId);
+      }
+
+      // Mesures de température (collection historique)
+      match /temperatureMeasurements/{id} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // Événements d'alerte (collection logs)
+      match /alertEvents/{id} {
+        allow read, write: if isOwner(userId);
+      }
     }
 
-    // --- COLLECTION RULES ---
-
-    /**
-     * @description Rules for UserPreference, stored as /users/{userId}/settings/current.
-     */
-    match /users/{userId}/settings/current {
-      allow get: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.externalAuthId == userId;
-      allow update: if isExistingOwner(userId, 'externalAuthId') && request.resource.data.externalAuthId == resource.data.externalAuthId;
-      allow delete: if isExistingOwner(userId, 'externalAuthId');
-    }
-
-    /**
-     * @description Rules for TemperatureMeasurements.
-     */
-    match /users/{userId}/temperatureMeasurements/{measurementId} {
-      allow get, list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.ownerUserId == userId;
-      allow update: if isExistingOwner(userId, 'ownerUserId') && request.resource.data.ownerUserId == resource.data.ownerUserId;
-      allow delete: if isExistingOwner(userId, 'ownerUserId');
-    }
-
-    /**
-     * @description Rules for AlertEvents.
-     */
-    match /users/{userId}/alertEvents/{alertEventId} {
-      allow get, list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.ownerUserId == userId;
-      allow update: if isExistingOwner(userId, 'ownerUserId') && request.resource.data.ownerUserId == resource.data.ownerUserId;
-      allow delete: if isExistingOwner(userId, 'ownerUserId');
-    }
-
-    // --- DEFAULT DENY ---
+    // Interdiction par défaut pour tout le reste
     match /{document=**} {
       allow read, write: if false;
     }

@@ -40,35 +40,40 @@ export default function SettingsPage() {
 
   const handleSave = () => {
     if (!user || !firestore) {
-      toast({ variant: "destructive", title: "Erreur", description: "Session introuvable." })
+      toast({ variant: "destructive", title: "Erreur", description: "Session introuvable. Veuillez vous reconnecter." })
       return
     }
 
-    // Validation du nombre d'emails
-    const emailsCount = email.split(',').filter(e => e.trim().length > 0).length
-    if (emailsCount > 5) {
-      toast({ variant: "destructive", title: "Limite atteinte", description: "Maximum 5 adresses e-mail autorisées." })
+    // Validation simple
+    const emails = email.split(',').map(e => e.trim()).filter(e => e.length > 0)
+    if (emails.length > 5) {
+      toast({ variant: "destructive", title: "Limite atteinte", description: "Maximum 5 adresses e-mail." })
       return
     }
 
     setIsSaving(true)
     const docRef = doc(firestore, "users", user.uid, "settings", "current")
 
-    setDocumentNonBlocking(docRef, {
+    // Préparation des données
+    const payload = {
       id: "current",
       externalAuthId: user.uid,
       alertEmail: email,
-      temperatureThreshold: threshold,
+      temperatureThreshold: Number(threshold),
       unitPreference: "Celsius",
       emailAlerts,
       updatedAt: new Date().toISOString(),
       createdAt: settings?.createdAt || new Date().toISOString(),
-    }, { merge: true })
+    }
 
+    // Mise à jour non-bloquante avec Firestore
+    setDocumentNonBlocking(docRef, payload, { merge: true })
+
+    // Retour utilisateur immédiat
     setTimeout(() => {
       setIsSaving(false)
-      toast({ title: "Succès", description: "Configuration mise à jour." })
-    }, 800)
+      toast({ title: "Configuration enregistrée", description: "Vos paramètres ont été mis à jour avec succès." })
+    }, 600)
   }
 
   if (isAuthLoading || (user && isDocLoading)) {
@@ -108,12 +113,16 @@ export default function SettingsPage() {
             <div className="space-y-4">
               <div className="flex items-center justify-between gap-4">
                 <Label className="text-lg">Valeur Critique (°C)</Label>
-                <Input 
-                  type="number" 
-                  value={threshold} 
-                  onChange={(e) => setThreshold(Number(e.target.value))}
-                  className="w-24 text-right font-bold text-primary text-xl border-primary/20"
-                />
+                <div className="flex items-center gap-2">
+                   <Input 
+                    type="number" 
+                    step="0.1"
+                    value={threshold} 
+                    onChange={(e) => setThreshold(Number(e.target.value))}
+                    className="w-28 text-right font-bold text-primary text-xl border-primary/20"
+                  />
+                  <span className="font-bold text-muted-foreground">°C</span>
+                </div>
               </div>
               <Slider
                 value={[threshold]}
@@ -130,7 +139,7 @@ export default function SettingsPage() {
         <Card className="border-none shadow-lg">
           <CardHeader>
             <CardTitle>Notifications Multi-Destinataires</CardTitle>
-            <CardDescription>Envoyez les alertes à plusieurs responsables en même temps.</CardDescription>
+            <CardDescription>Envoyez les alertes à plusieurs responsables simultanément.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex items-center justify-between">
@@ -138,7 +147,7 @@ export default function SettingsPage() {
                 <Users className="w-5 h-5 text-primary" />
                 <div>
                   <p className="font-semibold">Diffusion des Alertes</p>
-                  <p className="text-xs text-muted-foreground">Mode multi-emails activé</p>
+                  <p className="text-xs text-muted-foreground">Activer l'envoi d'e-mails</p>
                 </div>
               </div>
               <Switch checked={emailAlerts} onCheckedChange={setEmailAlerts} />
@@ -149,7 +158,7 @@ export default function SettingsPage() {
               <Input 
                 id="email-input"
                 type="text"
-                placeholder="email1@ex.com, email2@ex.com..." 
+                placeholder="chef@ex.com, manager@ex.com..." 
                 className="mt-2"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -162,7 +171,7 @@ export default function SettingsPage() {
           <CardFooter className="bg-muted/30 py-4 flex justify-end">
             <Button onClick={handleSave} disabled={isSaving} className="gap-2 px-8 shadow-md">
               {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              {isSaving ? "Sauvegarde..." : "Enregistrer"}
+              {isSaving ? "Sauvegarde..." : "Appliquer les Changements"}
             </Button>
           </CardFooter>
         </Card>
