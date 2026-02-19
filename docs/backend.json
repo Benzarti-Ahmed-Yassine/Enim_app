@@ -1,0 +1,201 @@
+{
+  "entities": {
+    "UserPreference": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserPreference",
+      "type": "object",
+      "description": "Stores user-specific settings and configurations for the TempAlert application, including alert thresholds and notification preferences.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the UserPreference entity."
+        },
+        "externalAuthId": {
+          "type": "string",
+          "description": "Identifier from the external authentication system (e.g., Firebase User ID) to link these preferences to a specific authenticated user."
+        },
+        "alertEmail": {
+          "type": "string",
+          "description": "The email address where alert notifications should be sent.",
+          "format": "email"
+        },
+        "temperatureThreshold": {
+          "type": "number",
+          "description": "The temperature value that, if exceeded, will trigger an alert."
+        },
+        "unitPreference": {
+          "type": "string",
+          "description": "The preferred unit of temperature measurement (e.g., 'Celsius', 'Fahrenheit') for display and threshold settings."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the user's preferences were first created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the user's preferences were last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "externalAuthId",
+        "alertEmail",
+        "temperatureThreshold",
+        "unitPreference",
+        "createdAt"
+      ]
+    },
+    "TemperatureMeasurement": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "TemperatureMeasurement",
+      "type": "object",
+      "description": "Records individual temperature readings over time for historical tracking and real-time display.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the TemperatureMeasurement entity."
+        },
+        "userPreferenceId": {
+          "type": "string",
+          "description": "Reference to the UserPreference entity that these measurements are associated with. (Relationship: UserPreference 1:N TemperatureMeasurement)"
+        },
+        "value": {
+          "type": "number",
+          "description": "The recorded temperature value."
+        },
+        "unit": {
+          "type": "string",
+          "description": "The unit of temperature measurement for this reading (e.g., 'Celsius', 'Fahrenheit')."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "The exact date and time the temperature was measured.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userPreferenceId",
+        "value",
+        "unit",
+        "timestamp"
+      ]
+    },
+    "AlertEvent": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AlertEvent",
+      "type": "object",
+      "description": "Logs details of each instance an alert was triggered and sent due to temperature exceeding a configured threshold.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the AlertEvent entity."
+        },
+        "userPreferenceId": {
+          "type": "string",
+          "description": "Reference to the UserPreference entity whose threshold configuration triggered this alert. (Relationship: UserPreference 1:N AlertEvent)"
+        },
+        "triggeredValue": {
+          "type": "number",
+          "description": "The temperature value that caused the alert to be triggered."
+        },
+        "thresholdSetAtTrigger": {
+          "type": "number",
+          "description": "The temperature threshold value that was configured at the moment this alert was triggered."
+        },
+        "unitAtTrigger": {
+          "type": "string",
+          "description": "The unit of temperature measurement relevant to the alert (e.g., 'Celsius', 'Fahrenheit')."
+        },
+        "alertEmailSentTo": {
+          "type": "string",
+          "description": "The email address to which the alert notification was sent.",
+          "format": "email"
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "The exact date and time the alert was generated and sent.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userPreferenceId",
+        "triggeredValue",
+        "thresholdSetAtTrigger",
+        "unitAtTrigger",
+        "alertEmailSentTo",
+        "timestamp"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}/settings",
+        "definition": {
+          "entityName": "UserPreference",
+          "schema": {
+            "$ref": "#/backend/entities/UserPreference"
+          },
+          "description": "Stores user-specific settings and preferences. Each user has a single UserPreference document with the fixed ID 'settings'. The 'externalAuthId' field within the document must match the 'userId' in the path and 'request.auth.uid' for robust authorization.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique Firebase Authentication ID of the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/temperatureMeasurements/{measurementId}",
+        "definition": {
+          "entityName": "TemperatureMeasurement",
+          "schema": {
+            "$ref": "#/backend/entities/TemperatureMeasurement"
+          },
+          "description": "Records individual temperature readings over time for a specific user. This entity's schema needs to be extended to include an 'ownerUserId' (string) field to store the authenticated user's UID for authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique Firebase Authentication ID of the user who owns these measurements."
+            },
+            {
+              "name": "measurementId",
+              "description": "The unique identifier for a specific temperature measurement."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/alertEvents/{alertEventId}",
+        "definition": {
+          "entityName": "AlertEvent",
+          "schema": {
+            "$ref": "#/backend/entities/AlertEvent"
+          },
+          "description": "Logs details of each instance an alert was triggered for a specific user. This entity's schema needs to be extended to include an 'ownerUserId' (string) field to store the authenticated user's UID for authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique Firebase Authentication ID of the user associated with these alerts."
+            },
+            {
+              "name": "alertEventId",
+              "description": "The unique identifier for a specific alert event."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The recommended Firestore structure for the TempAlert application prioritizes robust security, scalability, and debuggability by adhering to the core design principles, especially Authorization Independence and Structural Segregation. \n\n1.  **Authorization Independence (Denormalization for Rules):**\n    *   `UserPreference`: Each user's settings are stored in `/users/{userId}/settings`. The document's `externalAuthId` field, which stores the Firebase Authentication UID (`request.auth.uid`), acts as the denormalized owner identifier. This allows rules to verify `request.auth.uid == userId && resource.data.externalAuthId == userId` without relying on slow and insecure `get()` operations.\n    *   `TemperatureMeasurement` and `AlertEvent`: These entities are related to a `UserPreference` but for security, they must directly indicate their owner. To achieve this, an additional `ownerUserId` field (of type `string`) MUST be added to both `TemperatureMeasurement` and `AlertEvent` schemas. This `ownerUserId` field will store the `request.auth.uid` of the user who owns the parent `UserPreference`. This denormalization means that security rules for these collections can simply check `request.auth.uid == userId && resource.data.ownerUserId == userId`, ensuring authorization is self-contained within each document and its path, thus eliminating the need for `get()` calls.\n\n2.  **Structural Segregation (Homogeneous Security Posture):**\n    *   All data (`UserPreference`, `TemperatureMeasurement`, `AlertEvent`) is strictly private to the authenticated user. By nesting all user-specific data under `/users/{userId}/...`, we ensure that all documents within these user-specific subcollections (`settings`, `temperatureMeasurements`, `alertEvents`) share the exact same security requirements: only the owner (`request.auth.uid == userId`) can access them. This simplifies security rules significantly, moving complexity from rule logic to the data structure itself.\n\n3.  **QAPs (Rules are not Filters):**\n    *   The hierarchical path structure (`/users/{userId}/...`) naturally enables secure and efficient `list` operations. When a client requests data from a user's subcollection (e.g., `/users/{request.auth.uid}/temperatureMeasurements`), the `userId` wildcard in the path directly corresponds to `request.auth.uid`. Security rules can then simply `allow list: if request.auth.uid == userId;`. The additional check on the denormalized `externalAuthId` (for `UserPreference`) or `ownerUserId` (for `TemperatureMeasurement` and `AlertEvent`) within each document provides an extra layer of data integrity, guaranteeing that only truly owned documents are returned, even if a query path was somehow manipulated. This ensures that the client's query is implicitly filtered by ownership before any data is returned, upholding the QAP principle."
+  }
+}

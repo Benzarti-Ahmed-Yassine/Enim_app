@@ -1,0 +1,104 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * TEMP-ALERT SECURITY RULES ANALYSIS & PHILOSOPHY
+     * 
+     * CORE PHILOSOPHY:
+     * This ruleset enforces a strict User-Ownership model. Access is fundamentally 
+     * restricted based on the authenticated user's ID (UID), ensuring that users 
+     * can only interact with their own data.
+     * 
+     * DATA STRUCTURE:
+     * All application data is logically and physically nested under a user-specific 
+     * root: /users/{userId}/...
+     * - /users/{userId}/settings: A singleton document for user preferences.
+     * - /users/{userId}/temperatureMeasurements: A collection of historical readings.
+     * - /users/{userId}/alertEvents: A collection of triggered alert logs.
+     * 
+     * KEY SECURITY DECISIONS:
+     * 1. Structural Segregation: By nesting all data under the {userId} path, we 
+     *    create a clear boundary. Querying across users is impossible by design.
+     * 2. Denormalization for Authorization: We enforce that every document contains 
+     *    an internal ownership field (externalAuthId or ownerUserId) that matches 
+     *    the path's userId. This ensures that even if a path-based check were 
+     *    bypassed, the document data itself confirms ownership.
+     * 3. QAP Compliance: Read/List operations are secured via the path variable, 
+     *    ensuring that a user's query is implicitly filtered to only their data.
+     * 4. Prototyping Flexibility: Rules strictly enforce *who* can write, but do 
+     *    not enforce the internal schema of measurements or alerts beyond 
+     *    relational integrity fields.
+     */
+
+    // --- HELPER FUNCTIONS ---
+
+    /** Checks if the request is from a signed-in user. */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /** Checks if the authenticated user matches the provided userId from the path. */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /** 
+     * Checks if the authenticated user owns the existing document.
+     * Verifies existence, path ownership, and internal field ownership.
+     */
+    function isExistingOwner(userId, ownerField) {
+      return isOwner(userId) && resource != null && resource.data[ownerField] == userId;
+    }
+
+    // --- COLLECTION RULES ---
+
+    /**
+     * @description Rules for the UserPreference entity, stored as a singleton 'settings' document.
+     * @path /users/{userId}/settings
+     * @allow User 'abc' reading '/users/abc/settings' (get).
+     * @deny User 'abc' reading '/users/xyz/settings' (mismatched UID).
+     * @principle Validates path ownership and enforces internal externalAuthId consistency.
+     */
+    match /users/{userId}/settings {
+      allow get, list: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.externalAuthId == userId;
+      allow update: if isExistingOwner(userId, 'externalAuthId') && request.resource.data.externalAuthId == resource.data.externalAuthId;
+      allow delete: if isExistingOwner(userId, 'externalAuthId');
+    }
+
+    /**
+     * @description Rules for TemperatureMeasurements associated with a specific user.
+     * @path /users/{userId}/temperatureMeasurements/{measurementId}
+     * @allow User 'abc' creating a measurement under their own path with ownerUserId 'abc'.
+     * @deny Any user updating the ownerUserId field of an existing measurement.
+     * @principle Uses denormalized 'ownerUserId' to verify ownership without cross-document lookups.
+     */
+    match /users/{userId}/temperatureMeasurements/{measurementId} {
+      allow get, list: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.ownerUserId == userId;
+      allow update: if isExistingOwner(userId, 'ownerUserId') && request.resource.data.ownerUserId == resource.data.ownerUserId;
+      allow delete: if isExistingOwner(userId, 'ownerUserId');
+    }
+
+    /**
+     * @description Rules for AlertEvents triggered by temperature threshold violations.
+     * @path /users/{userId}/alertEvents/{alertEventId}
+     * @allow User 'abc' listing all their own alert events.
+     * @deny User 'abc' attempting to delete an alert event belonging to user 'xyz'.
+     * @principle Ensures destructive operations only occur on existing documents owned by the requester.
+     */
+    match /users/{userId}/alertEvents/{alertEventId} {
+      allow get, list: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.ownerUserId == userId;
+      allow update: if isExistingOwner(userId, 'ownerUserId') && request.resource.data.ownerUserId == resource.data.ownerUserId;
+      allow delete: if isExistingOwner(userId, 'ownerUserId');
+    }
+
+    // --- DEFAULT DENY ---
+    // Explicitly deny any access to paths not defined above.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
