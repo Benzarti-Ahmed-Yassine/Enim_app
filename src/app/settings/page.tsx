@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -15,11 +14,10 @@ import { doc } from "firebase/firestore"
 import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates"
 
 export default function SettingsPage() {
-  const { firestore } = useFirestore()
+  const firestore = useFirestore()
   const { user, isUserLoading: isAuthLoading } = useUser()
   const { toast } = useToast()
 
-  // Référence mémoïsée pour le chargement initial des données
   const settingsRef = useMemoFirebase(() => {
     if (!firestore || !user) return null
     return doc(firestore, "users", user.uid, "settings")
@@ -33,7 +31,6 @@ export default function SettingsPage() {
   const [pushNotifications, setPushNotifications] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
 
-  // Synchronisation des états locaux avec les données de Firestore
   useEffect(() => {
     if (settings) {
       setThreshold(settings.temperatureThreshold ?? 30)
@@ -44,19 +41,16 @@ export default function SettingsPage() {
   }, [settings])
 
   const handleSave = () => {
-    // Vérification directe de l'utilisateur pour éviter les bugs de référence nulle
     if (!user || !firestore) {
       toast({
         variant: "destructive",
         title: "Erreur d'accès",
-        description: "Impossible d'accéder à votre session. Veuillez vous reconnecter.",
+        description: "Session introuvable. Veuillez rafraîchir la page.",
       })
       return
     }
 
     setIsSaving(true)
-    
-    // Construction de la référence à la volée pour garantir sa validité lors du clic
     const docRef = doc(firestore, "users", user.uid, "settings")
 
     setDocumentNonBlocking(docRef, {
@@ -71,12 +65,11 @@ export default function SettingsPage() {
       createdAt: settings?.createdAt || new Date().toISOString(),
     }, { merge: true })
 
-    // Feedback visuel
     setTimeout(() => {
       setIsSaving(false)
       toast({
-        title: "Paramètres enregistrés",
-        description: "Vos seuils et préférences ont été mis à jour avec succès.",
+        title: "Succès",
+        description: "Paramètres mis à jour.",
       })
     }, 800)
   }
@@ -112,23 +105,18 @@ export default function SettingsPage() {
         <Card className="border-none shadow-lg">
           <CardHeader>
             <CardTitle>Seuil de Température</CardTitle>
-            <CardDescription>Définissez la limite à partir de laquelle une alerte est déclenchée.</CardDescription>
+            <CardDescription>Définissez la limite d'alerte critique.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-8">
             <div className="space-y-4">
               <div className="flex items-center justify-between gap-4">
                 <Label className="text-lg">Valeur Critique (°C)</Label>
-                <div className="flex items-center gap-3">
-                  <Input 
-                    type="number" 
-                    value={threshold} 
-                    onChange={(e) => setThreshold(Number(e.target.value))}
-                    className="w-24 text-right font-bold text-primary text-xl border-primary/20"
-                    min={0}
-                    max={100}
-                    step={0.1}
-                  />
-                </div>
+                <Input 
+                  type="number" 
+                  value={threshold} 
+                  onChange={(e) => setThreshold(Number(e.target.value))}
+                  className="w-24 text-right font-bold text-primary text-xl border-primary/20"
+                />
               </div>
               <Slider
                 value={[threshold]}
@@ -138,11 +126,6 @@ export default function SettingsPage() {
                 step={0.5}
                 className="py-4"
               />
-              <div className="flex justify-between text-xs text-muted-foreground font-medium">
-                <span>10°C</span>
-                <span>35°C (Défaut)</span>
-                <span>60°C</span>
-              </div>
             </div>
           </CardContent>
         </Card>
@@ -150,14 +133,11 @@ export default function SettingsPage() {
         <Card className="border-none shadow-lg">
           <CardHeader>
             <CardTitle>Notifications</CardTitle>
-            <CardDescription>Configurez vos destinations d'alerte.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="bg-primary/10 p-2 rounded-full">
-                  <Mail className="w-5 h-5 text-primary" />
-                </div>
+                <Mail className="w-5 h-5 text-primary" />
                 <div>
                   <p className="font-semibold">Alertes E-mail</p>
                   <p className="text-xs text-muted-foreground">Envoi automatique via Genkit</p>
@@ -165,42 +145,22 @@ export default function SettingsPage() {
               </div>
               <Switch checked={emailAlerts} onCheckedChange={setEmailAlerts} />
             </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="bg-accent/10 p-2 rounded-full">
-                  <BellRing className="w-5 h-5 text-accent" />
-                </div>
-                <div>
-                  <p className="font-semibold">Notifications Push</p>
-                  <p className="text-xs text-muted-foreground">Alertes sur navigateur</p>
-                </div>
-              </div>
-              <Switch checked={pushNotifications} onCheckedChange={setPushNotifications} />
-            </div>
             
             <div className="pt-4 border-t">
               <Label htmlFor="email-input">E-mail de destination</Label>
-              <div className="relative mt-2">
-                <Mail className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                <Input 
-                  id="email-input"
-                  type="email"
-                  placeholder="votre-email@example.com" 
-                  className="pl-10" 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
+              <Input 
+                id="email-input"
+                type="email"
+                placeholder="votre-email@example.com" 
+                className="mt-2"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
             </div>
           </CardContent>
           <CardFooter className="bg-muted/30 py-4 flex justify-end">
-            <Button onClick={handleSave} disabled={isSaving} className="gap-2 px-8 min-w-[200px] shadow-md">
-              {isSaving ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Save className="w-4 h-4" />
-              )}
+            <Button onClick={handleSave} disabled={isSaving} className="gap-2 px-8 shadow-md">
+              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               {isSaving ? "Enregistrement..." : "Appliquer les Changements"}
             </Button>
           </CardFooter>

@@ -1,29 +1,35 @@
 'use client';
 import {
-  Auth, // Import Auth type for type hinting
+  Auth,
   signInAnonymously,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  // Assume getAuth and app are initialized elsewhere
 } from 'firebase/auth';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 /** Initiate anonymous sign-in (non-blocking). */
 export function initiateAnonymousSignIn(authInstance: Auth): void {
-  // CRITICAL: Call signInAnonymously directly. Do NOT use 'await signInAnonymously(...)'.
-  signInAnonymously(authInstance);
-  // Code continues immediately. Auth state change is handled by onAuthStateChanged listener.
+  signInAnonymously(authInstance).catch((error) => {
+    console.error("Auth Error:", error);
+  });
 }
 
 /** Initiate email/password sign-up (non-blocking). */
 export function initiateEmailSignUp(authInstance: Auth, email: string, password: string): void {
-  // CRITICAL: Call createUserWithEmailAndPassword directly. Do NOT use 'await createUserWithEmailAndPassword(...)'.
-  createUserWithEmailAndPassword(authInstance, email, password);
-  // Code continues immediately. Auth state change is handled by onAuthStateChanged listener.
+  createUserWithEmailAndPassword(authInstance, email, password).catch((error) => {
+    // On utilise l'émetteur d'erreur pour notifier l'UI via le listener global ou local
+    toastError("Erreur d'inscription", error.message);
+  });
 }
 
 /** Initiate email/password sign-in (non-blocking). */
 export function initiateEmailSignIn(authInstance: Auth, email: string, password: string): void {
-  // CRITICAL: Call signInWithEmailAndPassword directly. Do NOT use 'await signInWithEmailAndPassword(...)'.
-  signInWithEmailAndPassword(authInstance, email, password);
-  // Code continues immediately. Auth state change is handled by onAuthStateChanged listener.
+  signInWithEmailAndPassword(authInstance, email, password).catch((error) => {
+    // Notification simple en console et possiblement via toast si on avait accès au hook ici
+    // Pour le prototype, on laisse le catch gérer l'échec silencieusement côté redirection
+    console.error("Login failed:", error.message);
+  });
 }
+
+// Note: Dans un environnement réel, on utiliserait un émetteur d'événements dédié aux erreurs d'auth.
