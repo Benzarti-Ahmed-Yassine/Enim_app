@@ -2,11 +2,12 @@
 "use client"
 
 import { useEffect, useState, useRef } from "react"
-import { Thermometer, Loader2, AlertTriangle } from "lucide-react"
+import { Thermometer, Loader2, AlertTriangle, Send } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase"
 import { doc, collection } from "firebase/firestore"
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates"
+import { sendAlertEmail } from "@/ai/flows/send-alert-email"
 
 export function TempGauge() {
   const firestore = useFirestore()
@@ -21,6 +22,7 @@ export function TempGauge() {
   const { data: settings, isLoading } = useDoc(settingsRef)
   
   const [temp, setTemp] = useState<number | null>(null)
+  const [isSendingAlert, setIsSendingAlert] = useState(false)
   const currentTempRef = useRef<number | null>(null)
   const lastAlertTime = useRef<number>(0)
   
@@ -40,7 +42,7 @@ export function TempGauge() {
       setTemp(next)
       currentTempRef.current = next
 
-      // Enregistrement Firestore (Marche sur le plan gratuit)
+      // Enregistrement Firestore
       if (user && firestore) {
         const measurementsCol = collection(firestore, "users", user.uid, "temperatureMeasurements")
         addDocumentNonBlocking(measurementsCol, {
@@ -51,22 +53,53 @@ export function TempGauge() {
         })
       }
 
-      // Alerte visuelle
+      // Alerte visuelle et e-mail (si activé et seuil dépassé)
       if (next > threshold) {
         const now = Date.now()
-        if (now - lastAlertTime.current > 60000) {
+        // Anti-spam de 2 minutes (120000ms)
+        if (now - lastAlertTime.current > 120000) {
           toast({
             variant: "destructive",
             title: "Dépassement de seuil !",
-            description: `Température actuelle : ${next.toFixed(1)}°C`,
+            description: `Température actuelle : ${next.toFixed(1)}°C. Tentative d'envoi d'alerte...`,
           })
+          
+          if (settings?.emailAlerts !== false && settings?.alertEmail) {
+            setIsSendingAlert(true)
+            const recipients = settings.alertEmail.split(',').map(e => e.trim()).filter(e => e !== "")
+            
+            // On envoie à tous les destinataires
+            Promise.all(recipients.map(recipient => 
+              sendAlertEmail({
+                recipientEmail: recipient,
+                temperature: next,
+                threshold: threshold,
+                unit: "Celsius"
+              })
+            )).then(() => {
+              toast({
+                title: "Alertes envoyées",
+                description: `E-mails envoyés à : ${settings.alertEmail}`,
+              })
+            }).catch(err => {
+              console.error("Erreur d'envoi d'e-mail:", err)
+              toast({
+                variant: "destructive",
+                title: "Erreur d'envoi",
+                description: "Vérifiez votre configuration SMTP ou le plan Firebase.",
+              })
+            }).finally(() => {
+              setIsSendingAlert(false)
+            })
+          }
+          
           lastAlertTime.current = now
         }
       }
     }, 5000)
 
     return () => clearInterval(interval)
-  }, [threshold, user, firestore, toast])
+  }, [threshold, user, firestore, toast, settings])
 
   if (isLoading || temp === null) return (
     <div className="h-64 flex flex-col items-center justify-center gap-2">
@@ -91,12 +124,19 @@ export function TempGauge() {
             CRITIQUE
           </div>
         )}
+        
+        {isSendingAlert && (
+          <div className="absolute top-4 bg-primary text-white px-3 py-1 rounded-full text-[10px] font-bold flex items-center gap-2">
+            <Send className="w-3 h-3 animate-bounce" />
+            ENVOI...
+          </div>
+        )}
       </div>
       
       <div className="text-center space-y-2">
         <p className="text-sm font-medium">Seuil : <span className="text-primary">{threshold.toFixed(1)}°C</span></p>
         <p className="text-[10px] text-muted-foreground max-w-[200px]">
-          Note: Les e-mails sont désactivés en mode plan gratuit (Spark).
+          Mode dynamique actif (App Hosting). Les alertes IA et e-mails sont opérationnels.
         </p>
       </div>
     </div>

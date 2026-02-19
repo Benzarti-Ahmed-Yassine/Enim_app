@@ -1,38 +1,34 @@
 
-# TempAlert - Precision Monitoring (Mode Gratuit)
+# TempAlert - Precision Monitoring (Mode Production)
 
-Système de surveillance de température avec Dashboard Cloud.
+Système de surveillance de température avec Dashboard Cloud et Alertes Multi-E-mails.
 
-## 🌟 Mode Plan Gratuit (Spark)
-Cette version est configurée pour fonctionner sur le plan **Spark** de Firebase. 
-- **Ce qui marche :** Authentification, Base de données temps réel (Firestore), Dashboard, Historique.
-- **Ce qui est désactivé :** L'envoi automatique d'e-mails d'alerte (nécessite le plan Blaze).
+## 🚀 Déploiement (Firebase App Hosting)
 
-## 🚀 Déploiement Facile (Hosting Classique)
+Cette application utilise **Firebase App Hosting** pour supporter les fonctionnalités serveurs (Next.js Server Actions, Genkit AI, Nodemailer).
 
-### 1. Préparation
-Assurez-vous d'avoir installé les outils Firebase sur votre ordinateur :
+### 1. Préparation GitHub
+- Créez un nouveau dépôt sur GitHub.
+- Poussez votre code :
 ```bash
-npm install -g firebase-tools
+git init
+git add .
+git commit -m "Initial commit"
+git branch -M main
+git remote add origin https://github.com/VOTRE_NOM/VOTRE_PROJET.git
+git push -u origin main
 ```
 
-### 2. Initialisation
-Dans le dossier du projet :
-```bash
-firebase login
-firebase init hosting
-```
-- Sélectionnez votre projet : `studio-1892302408-8f785`
-- Répertoire public : `out` (très important !)
-- Configurer comme single-page app : `Yes`
-- Déploiements automatiques avec GitHub : `No` (ou `Yes` si vous voulez)
+### 2. Configuration Firebase Console
+- Allez dans la [Console Firebase](https://console.firebase.google.com/).
+- Sélectionnez votre projet : `studio-1892302408-8f785`.
+- Menu de gauche : **Build > App Hosting**.
+- Cliquez sur **Commencer**.
+- Connectez votre compte GitHub et sélectionnez votre dépôt.
+- Laissez les paramètres par défaut et cliquez sur **Déployer**.
 
-### 3. Déploiement
-Chaque fois que vous voulez mettre à jour le site :
-```bash
-npm run build
-firebase deploy --only hosting
-```
+### 3. Plan Blaze
+Note : Firebase App Hosting nécessite que le projet soit sur le plan **Blaze** (paiement à l'usage). Les services resteront gratuits tant que vous restez dans les limites du quota gratuit de Google Cloud.
 
-## 📧 Note sur les Alertes
-Puisque le mode gratuit ne permet pas d'envoyer des mails via le serveur, l'alerte visuelle s'affichera toujours sur le Dashboard, mais l'e-mail ne sera pas expédié.
+## 📧 Alertes Multi-E-mails
+Vous pouvez configurer jusqu'à 5 adresses e-mail dans les paramètres (séparées par des virgules). Le système enverra une alerte à tous les destinataires simultanément en cas de dépassement de seuil.

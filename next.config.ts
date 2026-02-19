@@ -2,9 +2,9 @@
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
-  output: 'export', // Active l'exportation statique pour le plan gratuit
+  // Suppression de output: 'export' pour permettre les Server Actions et le mode dynamique
   images: {
-    unoptimized: true, // Requis pour le mode statique
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',

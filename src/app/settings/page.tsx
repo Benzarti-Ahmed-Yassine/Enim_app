@@ -27,14 +27,14 @@ export default function SettingsPage() {
   const { data: settings, isLoading: isDocLoading } = useDoc(settingsRef)
 
   const [threshold, setThreshold] = useState(30)
-  const [email, setEmail] = useState("")
+  const [emailList, setEmailList] = useState("")
   const [emailAlerts, setEmailAlerts] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
 
   useEffect(() => {
     if (settings) {
       setThreshold(settings.temperatureThreshold ?? 30)
-      setEmail(settings.alertEmail ?? "")
+      setEmailList(settings.alertEmail ?? "")
       setEmailAlerts(settings.emailAlerts !== false)
     }
   }, [settings])
@@ -45,13 +45,20 @@ export default function SettingsPage() {
       return
     }
 
+    // Validation basique (max 5 emails)
+    const emails = emailList.split(',').map(e => e.trim()).filter(e => e !== "")
+    if (emails.length > 5) {
+      toast({ variant: "destructive", title: "Limite atteinte", description: "Maximum 5 adresses e-mail autorisées." })
+      return
+    }
+
     setIsSaving(true)
     const docRef = doc(firestore, "users", user.uid, "settings", "current")
 
     const payload = {
       id: "current",
       externalAuthId: user.uid,
-      alertEmail: email,
+      alertEmail: emailList,
       temperatureThreshold: Number(threshold),
       unitPreference: "Celsius",
       emailAlerts,
@@ -63,7 +70,7 @@ export default function SettingsPage() {
 
     setTimeout(() => {
       setIsSaving(false)
-      toast({ title: "Configuration enregistrée", description: "Vos paramètres ont été mis à jour." })
+      toast({ title: "Configuration enregistrée", description: "Vos paramètres et alertes ont été mis à jour." })
     }, 600)
   }
 
@@ -91,14 +98,14 @@ export default function SettingsPage() {
            <SettingsIcon className="w-6 h-6 text-primary" />
            <h1 className="text-3xl font-bold font-headline tracking-tight text-primary">Configuration</h1>
         </div>
-        <p className="text-muted-foreground">Paramétrez vos alertes critiques.</p>
+        <p className="text-muted-foreground">Paramétrez vos alertes critiques et destinataires.</p>
       </header>
 
       <div className="grid gap-6">
         <Card className="border-none shadow-lg">
           <CardHeader>
             <CardTitle>Seuil de Température</CardTitle>
-            <CardDescription>Ajustez la limite d'alerte.</CardDescription>
+            <CardDescription>Ajustez la limite d'alerte critique.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-8">
             <div className="space-y-4">
@@ -126,8 +133,8 @@ export default function SettingsPage() {
 
         <Card className="border-none shadow-lg">
           <CardHeader>
-            <CardTitle>Notifications E-mail</CardTitle>
-            <CardDescription>Recevez une alerte en cas de dépassement.</CardDescription>
+            <CardTitle>Notifications Multi-Destinataires</CardTitle>
+            <CardDescription>Entrez jusqu'à 5 e-mails séparés par des virgules.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex items-center justify-between">
@@ -139,14 +146,17 @@ export default function SettingsPage() {
             </div>
             
             <div className="pt-4 border-t space-y-2">
-              <Label htmlFor="email-input">E-mail de destination</Label>
+              <Label htmlFor="email-input">Liste des destinataires</Label>
               <Input 
                 id="email-input"
-                type="email"
-                placeholder="votre@email.com" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type="text"
+                placeholder="mail1@test.com, mail2@test.com..." 
+                value={emailList}
+                onChange={(e) => setEmailList(e.target.value)}
               />
+              <p className="text-[10px] text-muted-foreground italic">
+                Séparez les adresses par une virgule. Les alertes seront envoyées simultanément.
+              </p>
             </div>
           </CardContent>
           <CardFooter className="bg-muted/30 py-4 flex justify-end">
