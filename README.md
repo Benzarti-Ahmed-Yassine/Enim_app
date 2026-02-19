@@ -1,39 +1,40 @@
-
 # TempAlert - Precision Monitoring
 
-Real-time temperature monitoring and alert system built with Next.js, ShadCN UI, and Tailwind CSS.
+Système de surveillance de température en temps réel avec alertes e-mail intelligentes.
 
-## Getting Started
+## Architecture
+- **Framework :** Next.js 15 (App Router)
+- **Base de données :** Firestore (Temps réel)
+- **Authentification :** Firebase Auth (E-mail/Mot de passe)
+- **IA/Alertes :** Genkit + Nodemailer (Gmail)
 
-1. **Install Dependencies:**
-   ```bash
-   npm install
-   ```
+## Procédure d'Hébergement (Firebase App Hosting)
 
-2. **Run Development Server:**
-   ```bash
-   npm run dev
-   ```
-   Open [http://localhost:9002](http://localhost:9002) to view the app.
+### 1. Préparation du projet
+L'application est configurée pour être déployée via **Firebase App Hosting**, qui gère automatiquement le build Next.js et les Server Actions.
 
-## Deployment to GitHub & Firebase App Hosting
-
-To deploy this app and keep it in sync with GitHub:
-
-1. **Create a GitHub Repository:** Go to [GitHub](https://github.com/new) and create a new repository.
-2. **Initialize Git and Push:**
+### 2. Déploiement vers GitHub
+1. Créez un nouveau dépôt sur GitHub.
+2. Poussez votre code :
    ```bash
    git init
    git add .
    git commit -m "Initial commit"
    git branch -M main
-   git remote add origin <YOUR_GITHUB_REPO_URL>
+   git remote add origin https://github.com/VOTRE_NOM/VOTRE_REPO.git
    git push -u origin main
    ```
-3. **Connect to Firebase:**
-   - Go to the [Firebase Console](https://console.firebase.google.com/).
-   - Select your project.
-   - Navigate to **App Hosting** in the left sidebar.
-   - Click **Get Started** and connect your GitHub account.
-   - Select the repository you just created.
-   - Follow the setup wizard to deploy your app. Firebase will automatically handle builds and deployments whenever you push to your `main` branch.
+
+### 3. Configuration dans la Console Firebase
+1. Allez sur la [Console Firebase](https://console.firebase.google.com/).
+2. Sélectionnez votre projet.
+3. Dans le menu de gauche, allez dans **Build > App Hosting**.
+4. Cliquez sur **Get Started** et connectez votre compte GitHub.
+5. Sélectionnez votre dépôt et branche (`main`).
+6. Firebase créera automatiquement un backend App Hosting et déploiera votre application à chaque "push" sur GitHub.
+
+### 4. Variables d'environnement
+Dans la console App Hosting, assurez-vous d'ajouter vos secrets si nécessaire (comme `GEMINI_API_KEY` pour Genkit).
+
+## Sécurité
+Les règles Firestore (`firestore.rules`) garantissent que chaque utilisateur ne peut lire et écrire que ses propres données de capteurs et réglages.
