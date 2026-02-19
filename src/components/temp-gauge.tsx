@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useEffect, useState, useRef } from "react"
@@ -13,9 +14,10 @@ export function TempGauge() {
   const { user } = useUser()
   const { toast } = useToast()
   
+  // Correction du chemin Firestore pour lire le seuil
   const settingsRef = useMemoFirebase(() => {
     if (!firestore || !user) return null
-    return doc(firestore, "users", user.uid, "settings", "preferences")
+    return doc(firestore, "users", user.uid, "settings")
   }, [firestore, user])
 
   const { data: settings, isLoading } = useDoc(settingsRef)
@@ -25,24 +27,20 @@ export function TempGauge() {
   const alertEmail = settings?.alertEmail
   const isEmailAlertEnabled = settings?.emailAlerts !== false
 
-  // Utiliser une ref pour éviter de déclencher plusieurs fois l'alerte
   const lastAlertSentTime = useRef<number>(0)
 
   useEffect(() => {
-    // Valeur initiale aléatoire
     const initialTemp = 24.5 + Math.random() * 5
     setTemp(initialTemp)
 
     const interval = setInterval(() => {
       setTemp(prev => {
         if (prev === null) return 25
-        const change = (Math.random() - 0.5) * 1.5 // Augmenter un peu la variation pour tester
+        const change = (Math.random() - 0.5) * 1.5
         const next = prev + change
         
-        // Vérifier le seuil
         if (next > threshold && prev <= threshold) {
           const now = Date.now()
-          // Anti-spam : Une seule alerte toutes les 2 minutes
           if (now - lastAlertSentTime.current > 120000) {
             handleTriggerAlert(next)
             lastAlertSentTime.current = now
@@ -64,10 +62,10 @@ export function TempGauge() {
     })
 
     if (user && firestore) {
-      // Enregistrer l'événement d'alerte dans Firestore
       const alertsCol = collection(firestore, "users", user.uid, "alertEvents")
       addDocumentNonBlocking(alertsCol, {
         ownerUserId: user.uid,
+        userPreferenceId: "settings",
         triggeredValue: currentTemp,
         thresholdSetAtTrigger: threshold,
         unitAtTrigger: "Celsius",
@@ -75,7 +73,6 @@ export function TempGauge() {
         timestamp: new Date().toISOString(),
       })
 
-      // Déclencher le flow Genkit si l'e-mail est configuré
       if (alertEmail && isEmailAlertEnabled) {
         try {
           await sendAlertEmail({

@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -18,9 +19,10 @@ export default function SettingsPage() {
   const { user } = useUser()
   const { toast } = useToast()
 
+  // Correction du chemin Firestore selon backend.json : /users/{userId}/settings
   const settingsRef = useMemoFirebase(() => {
     if (!firestore || !user) return null
-    return doc(firestore, "users", user.uid, "settings", "preferences")
+    return doc(firestore, "users", user.uid, "settings")
   }, [firestore, user])
 
   const { data: settings, isLoading } = useDoc(settingsRef)
@@ -43,6 +45,7 @@ export default function SettingsPage() {
     if (!settingsRef || !user) return
 
     setDocumentNonBlocking(settingsRef, {
+      id: "settings",
       externalAuthId: user.uid,
       alertEmail: email,
       temperatureThreshold: threshold,
@@ -81,7 +84,7 @@ export default function SettingsPage() {
         <Card className="border-none shadow-lg">
           <CardHeader>
             <CardTitle>Contrôle du Seuil</CardTitle>
-            <CardDescription>Définissez la limite de température critique</CardDescription>
+            <CardDescription>Définissez la limite de température critique manuellement</CardDescription>
           </CardHeader>
           <CardContent className="space-y-8">
             <div className="space-y-4">
@@ -99,7 +102,7 @@ export default function SettingsPage() {
               />
               <div className="flex justify-between text-xs text-muted-foreground font-medium">
                 <span>10°C</span>
-                <span>35°C (Équilibré)</span>
+                <span>35°C (Recommandé)</span>
                 <span>60°C</span>
               </div>
             </div>
