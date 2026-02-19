@@ -2,11 +2,10 @@
 "use client"
 
 import { useEffect, useState, useRef } from "react"
-import { Thermometer, Loader2, Send } from "lucide-react"
+import { Thermometer, Loader2, AlertTriangle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase"
 import { doc, collection } from "firebase/firestore"
-import { sendAlertEmail } from "@/ai/flows/send-alert-email"
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates"
 
 export function TempGauge() {
@@ -22,46 +21,10 @@ export function TempGauge() {
   const { data: settings, isLoading } = useDoc(settingsRef)
   
   const [temp, setTemp] = useState<number | null>(null)
-  const [isSendingEmail, setIsSendingEmail] = useState(false)
   const currentTempRef = useRef<number | null>(null)
-  const lastAlertSentTime = useRef<number>(0)
+  const lastAlertTime = useRef<number>(0)
   
   const threshold = settings?.temperatureThreshold || 30
-  const alertEmail = settings?.alertEmail
-  const isEmailAlertEnabled = settings?.emailAlerts !== false
-
-  const handleTriggerAlert = (currentTemp: number) => {
-    if (!user || !firestore) return
-
-    // 1. Log alert
-    const alertsCol = collection(firestore, "users", user.uid, "alertEvents")
-    addDocumentNonBlocking(alertsCol, {
-      ownerUserId: user.uid,
-      triggeredValue: currentTemp,
-      thresholdSetAtTrigger: threshold,
-      unitAtTrigger: "Celsius",
-      alertEmailSentTo: alertEmail || "non-configuré",
-      timestamp: new Date().toISOString(),
-    })
-
-    // 2. Email alert
-    if (alertEmail && isEmailAlertEnabled) {
-      setIsSendingEmail(true)
-      sendAlertEmail({
-        recipientEmail: alertEmail,
-        temperature: currentTemp,
-        threshold: threshold,
-        unit: "Celsius"
-      })
-      .then(() => {
-        toast({ title: "Alerte envoyée", description: `E-mail envoyé à ${alertEmail}` })
-      })
-      .catch(() => {
-        toast({ variant: "destructive", title: "Échec", description: "Impossible d'envoyer l'e-mail." })
-      })
-      .finally(() => setIsSendingEmail(false))
-    }
-  }
 
   useEffect(() => {
     if (currentTempRef.current === null) {
@@ -77,6 +40,7 @@ export function TempGauge() {
       setTemp(next)
       currentTempRef.current = next
 
+      // Enregistrement Firestore (Marche sur le plan gratuit)
       if (user && firestore) {
         const measurementsCol = collection(firestore, "users", user.uid, "temperatureMeasurements")
         addDocumentNonBlocking(measurementsCol, {
@@ -87,17 +51,22 @@ export function TempGauge() {
         })
       }
 
+      // Alerte visuelle
       if (next > threshold) {
         const now = Date.now()
-        if (now - lastAlertSentTime.current > 120000) {
-          handleTriggerAlert(next)
-          lastAlertSentTime.current = now
+        if (now - lastAlertTime.current > 60000) {
+          toast({
+            variant: "destructive",
+            title: "Dépassement de seuil !",
+            description: `Température actuelle : ${next.toFixed(1)}°C`,
+          })
+          lastAlertTime.current = now
         }
       }
     }, 5000)
 
     return () => clearInterval(interval)
-  }, [threshold, alertEmail, isEmailAlertEnabled, user, firestore])
+  }, [threshold, user, firestore, toast])
 
   if (isLoading || temp === null) return (
     <div className="h-64 flex flex-col items-center justify-center gap-2">
@@ -118,14 +87,17 @@ export function TempGauge() {
         
         {isHigh && (
           <div className="absolute -bottom-4 bg-accent text-white px-4 py-1 rounded-full text-xs font-bold animate-pulse flex items-center gap-2">
-            {isSendingEmail ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
-            {isSendingEmail ? "ENVOI..." : "ALERTE"}
+            <AlertTriangle className="w-3 h-3" />
+            CRITIQUE
           </div>
         )}
       </div>
       
-      <div className="text-center space-y-1">
+      <div className="text-center space-y-2">
         <p className="text-sm font-medium">Seuil : <span className="text-primary">{threshold.toFixed(1)}°C</span></p>
+        <p className="text-[10px] text-muted-foreground max-w-[200px]">
+          Note: Les e-mails sont désactivés en mode plan gratuit (Spark).
+        </p>
       </div>
     </div>
   )

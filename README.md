@@ -1,44 +1,38 @@
-# TempAlert - Precision Monitoring
 
-Système de surveillance de température en temps réel avec alertes e-mail intelligentes.
+# TempAlert - Precision Monitoring (Mode Gratuit)
 
-## 🚀 Pourquoi "App Hosting" ?
-Cette application utilise **Next.js 15** avec des fonctionnalités serveur (Server Actions) pour :
-1. **Envoyer des e-mails** via Nodemailer.
-2. **Utiliser l'IA** de manière sécurisée.
+Système de surveillance de température avec Dashboard Cloud.
 
-Le "Firebase Hosting" classique ne supporte que les sites statiques. Pour que les alertes fonctionnent, vous **devez** utiliser **App Hosting**.
+## 🌟 Mode Plan Gratuit (Spark)
+Cette version est configurée pour fonctionner sur le plan **Spark** de Firebase. 
+- **Ce qui marche :** Authentification, Base de données temps réel (Firestore), Dashboard, Historique.
+- **Ce qui est désactivé :** L'envoi automatique d'e-mails d'alerte (nécessite le plan Blaze).
 
-## 🛠️ Comment pousser ce projet sur GitHub (Étapes simples)
+## 🚀 Déploiement Facile (Hosting Classique)
 
-### 1. Créez un dépôt sur GitHub
-- Allez sur [github.com/new](https://github.com/new).
-- Nommez votre projet (ex: `temp-alert-precision`).
-- Ne cochez **aucune** case (README, .gitignore).
-- Cliquez sur "Create repository".
-
-### 2. Exécutez ces commandes dans votre terminal
-Ouvrez le terminal dans le dossier du projet et copiez-collez ces lignes une par une :
-
+### 1. Préparation
+Assurez-vous d'avoir installé les outils Firebase sur votre ordinateur :
 ```bash
-git init
-git add .
-git commit -m "Initial commit: TempAlert setup"
-git branch -M main
-git remote add origin https://github.com/VOTRE_NOM_UTILISATEUR/VOTRE_NOM_REPO.git
-git push -u origin main
+npm install -g firebase-tools
 ```
-*(Remplacez l'URL par celle fournie par GitHub)*.
 
-## 🌐 Déploiement Firebase App Hosting
-1. Allez dans la [Console Firebase](https://console.firebase.google.com/project/studio-1892302408-8f785/apphosting).
-2. Cliquez sur **"Get Started"** (Commencer).
-3. Connectez votre compte GitHub.
-4. Sélectionnez le dépôt que vous venez de créer.
-5. Firebase déploiera automatiquement votre application et vous donnera le lien final !
+### 2. Initialisation
+Dans le dossier du projet :
+```bash
+firebase login
+firebase init hosting
+```
+- Sélectionnez votre projet : `studio-1892302408-8f785`
+- Répertoire public : `out` (très important !)
+- Configurer comme single-page app : `Yes`
+- Déploiements automatiques avec GitHub : `No` (ou `Yes` si vous voulez)
 
-## 📧 Configuration des Alertes
-- Allez dans l'onglet **Settings** de l'application.
-- Entrez jusqu'à **5 adresses e-mail** séparées par des virgules.
-- Définissez votre seuil critique.
-- Le système s'occupe du reste !
+### 3. Déploiement
+Chaque fois que vous voulez mettre à jour le site :
+```bash
+npm run build
+firebase deploy --only hosting
+```
+
+## 📧 Note sur les Alertes
+Puisque le mode gratuit ne permet pas d'envoyer des mails via le serveur, l'alerte visuelle s'affichera toujours sur le Dashboard, mais l'e-mail ne sera pas expédié.
