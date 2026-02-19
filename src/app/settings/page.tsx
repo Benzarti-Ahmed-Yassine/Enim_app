@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -8,26 +7,64 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Slider } from "@/components/ui/slider"
-import { getThreshold, setThreshold as saveThreshold } from "@/lib/temp-data"
 import { useToast } from "@/hooks/use-toast"
-import { Settings as SettingsIcon, Mail, BellRing, Save } from "lucide-react"
+import { Settings as SettingsIcon, Mail, BellRing, Save, Loader2 } from "lucide-react"
+import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase"
+import { doc } from "firebase/firestore"
+import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates"
 
 export default function SettingsPage() {
-  const [threshold, setThreshold] = useState(30)
-  const [emailAlerts, setEmailAlerts] = useState(true)
-  const [pushNotifications, setPushNotifications] = useState(true)
+  const { firestore } = useFirestore()
+  const { user } = useUser()
   const { toast } = useToast()
 
+  const settingsRef = useMemoFirebase(() => {
+    if (!firestore || !user) return null
+    return doc(firestore, "users", user.uid, "settings", "preferences")
+  }, [firestore, user])
+
+  const { data: settings, isLoading } = useDoc(settingsRef)
+
+  const [threshold, setThreshold] = useState(30)
+  const [email, setEmail] = useState("admin@tempalert.io")
+  const [emailAlerts, setEmailAlerts] = useState(true)
+  const [pushNotifications, setPushNotifications] = useState(true)
+
   useEffect(() => {
-    setThreshold(getThreshold())
-  }, [])
+    if (settings) {
+      setThreshold(settings.temperatureThreshold || 30)
+      setEmail(settings.alertEmail || "")
+      setEmailAlerts(settings.emailAlerts !== false)
+      setPushNotifications(settings.pushNotifications !== false)
+    }
+  }, [settings])
 
   const handleSave = () => {
-    saveThreshold(threshold)
+    if (!settingsRef || !user) return
+
+    setDocumentNonBlocking(settingsRef, {
+      externalAuthId: user.uid,
+      alertEmail: email,
+      temperatureThreshold: threshold,
+      unitPreference: "Celsius",
+      emailAlerts,
+      pushNotifications,
+      updatedAt: new Date().toISOString(),
+      createdAt: settings?.createdAt || new Date().toISOString(),
+    }, { merge: true })
+
     toast({
-      title: "Settings Saved",
-      description: "Your temperature threshold and preferences have been updated.",
+      title: "Paramètres enregistrés",
+      description: "Vos seuils et préférences ont été mis à jour dans le cloud.",
     })
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    )
   }
 
   return (
@@ -37,19 +74,19 @@ export default function SettingsPage() {
            <SettingsIcon className="w-6 h-6 text-primary" />
            <h1 className="text-3xl font-bold font-headline tracking-tight text-primary">Configuration</h1>
         </div>
-        <p className="text-muted-foreground">Adjust system sensitivity and alert destinations.</p>
+        <p className="text-muted-foreground">Ajustez la sensibilité du système et les destinations d'alerte.</p>
       </header>
 
       <div className="grid gap-6">
         <Card className="border-none shadow-lg">
           <CardHeader>
-            <CardTitle>Threshold Control</CardTitle>
-            <CardDescription>Define the critical temperature limit</CardDescription>
+            <CardTitle>Contrôle du Seuil</CardTitle>
+            <CardDescription>Définissez la limite de température critique</CardDescription>
           </CardHeader>
           <CardContent className="space-y-8">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label className="text-lg">Critical Value</Label>
+                <Label className="text-lg">Valeur Critique</Label>
                 <span className="text-2xl font-bold text-primary">{threshold}°C</span>
               </div>
               <Slider
@@ -62,20 +99,8 @@ export default function SettingsPage() {
               />
               <div className="flex justify-between text-xs text-muted-foreground font-medium">
                 <span>10°C</span>
-                <span>35°C (Balanced)</span>
+                <span>35°C (Équilibré)</span>
                 <span>60°C</span>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="manual">Manual Entry</Label>
-                <Input 
-                  id="manual" 
-                  type="number" 
-                  value={threshold} 
-                  onChange={(e) => setThreshold(parseFloat(e.target.value))} 
-                />
               </div>
             </div>
           </CardContent>
@@ -83,8 +108,8 @@ export default function SettingsPage() {
 
         <Card className="border-none shadow-lg">
           <CardHeader>
-            <CardTitle>Alert Channels</CardTitle>
-            <CardDescription>How should we notify you?</CardDescription>
+            <CardTitle>Canaux d'Alerte</CardTitle>
+            <CardDescription>Comment souhaitez-vous être notifié ?</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex items-center justify-between">
@@ -93,8 +118,8 @@ export default function SettingsPage() {
                   <Mail className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <p className="font-semibold">Email Alerts</p>
-                  <p className="text-xs text-muted-foreground">Notifications via Nodemailer</p>
+                  <p className="font-semibold">Alertes E-mail</p>
+                  <p className="text-xs text-muted-foreground">Notification via système d'alerte</p>
                 </div>
               </div>
               <Switch checked={emailAlerts} onCheckedChange={setEmailAlerts} />
@@ -106,22 +131,29 @@ export default function SettingsPage() {
                   <BellRing className="w-5 h-5 text-accent" />
                 </div>
                 <div>
-                  <p className="font-semibold">Push Notifications</p>
-                  <p className="text-xs text-muted-foreground">Instant browser alerts</p>
+                  <p className="font-semibold">Notifications Push</p>
+                  <p className="text-xs text-muted-foreground">Alertes instantanées</p>
                 </div>
               </div>
               <Switch checked={pushNotifications} onCheckedChange={setPushNotifications} />
             </div>
             
             <div className="pt-4 border-t">
-              <Label>Alert Recipient</Label>
-              <Input placeholder="your-email@example.com" className="mt-2" defaultValue="admin@tempalert.io" />
+              <Label htmlFor="email-input">E-mail du Destinataire</Label>
+              <Input 
+                id="email-input"
+                type="email"
+                placeholder="votre-email@example.com" 
+                className="mt-2" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
             </div>
           </CardContent>
           <CardFooter className="bg-muted/30 py-4 flex justify-end">
             <Button onClick={handleSave} className="gap-2 px-8">
               <Save className="w-4 h-4" />
-              Apply Changes
+              Appliquer les Changements
             </Button>
           </CardFooter>
         </Card>
