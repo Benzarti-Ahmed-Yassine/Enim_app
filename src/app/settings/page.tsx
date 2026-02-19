@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Slider } from "@/components/ui/slider"
 import { useToast } from "@/hooks/use-toast"
-import { Settings as SettingsIcon, Mail, BellRing, Save, Loader2, AlertCircle } from "lucide-react"
+import { Settings as SettingsIcon, Mail, Save, Loader2, AlertCircle } from "lucide-react"
 import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase"
 import { doc } from "firebase/firestore"
 import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates"
@@ -20,7 +20,7 @@ export default function SettingsPage() {
 
   const settingsRef = useMemoFirebase(() => {
     if (!firestore || !user) return null
-    return doc(firestore, "users", user.uid, "settings")
+    return doc(firestore, "users", user.uid, "settings", "current")
   }, [firestore, user])
 
   const { data: settings, isLoading: isDocLoading } = useDoc(settingsRef)
@@ -51,10 +51,10 @@ export default function SettingsPage() {
     }
 
     setIsSaving(true)
-    const docRef = doc(firestore, "users", user.uid, "settings")
+    const docRef = doc(firestore, "users", user.uid, "settings", "current")
 
     setDocumentNonBlocking(docRef, {
-      id: "settings",
+      id: "current",
       externalAuthId: user.uid,
       alertEmail: email,
       temperatureThreshold: threshold,

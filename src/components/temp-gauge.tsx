@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useRef } from "react"
-import { Thermometer, AlertTriangle, Loader2 } from "lucide-react"
+import { Thermometer, Loader2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase"
 import { doc, collection } from "firebase/firestore"
@@ -15,7 +15,7 @@ export function TempGauge() {
   
   const settingsRef = useMemoFirebase(() => {
     if (!firestore || !user) return null
-    return doc(firestore, "users", user.uid, "settings")
+    return doc(firestore, "users", user.uid, "settings", "current")
   }, [firestore, user])
 
   const { data: settings, isLoading } = useDoc(settingsRef)
@@ -29,8 +29,6 @@ export function TempGauge() {
   const isEmailAlertEnabled = settings?.emailAlerts !== false
 
   const handleTriggerAlert = (currentTemp: number) => {
-    // Évite l'erreur de rendu en utilisant un petit délai si nécessaire, 
-    // ou en s'assurant que le toast n'est pas appelé durant le rendu.
     toast({
       variant: "destructive",
       title: "ALERTE : Seuil dépassé",
@@ -41,7 +39,7 @@ export function TempGauge() {
       const alertsCol = collection(firestore, "users", user.uid, "alertEvents")
       addDocumentNonBlocking(alertsCol, {
         ownerUserId: user.uid,
-        userPreferenceId: "settings",
+        userPreferenceId: "current",
         triggeredValue: currentTemp,
         thresholdSetAtTrigger: threshold,
         unitAtTrigger: "Celsius",
