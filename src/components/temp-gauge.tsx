@@ -31,50 +31,35 @@ export function TempGauge() {
   const isEmailAlertEnabled = settings?.emailAlerts !== false
 
   const handleTriggerAlert = (currentTemp: number) => {
-    toast({
-      variant: "destructive",
-      title: "SEUIL DÉPASSÉ",
-      description: `${currentTemp.toFixed(1)}°C. Vérification de l'envoi d'alerte...`,
+    if (!user || !firestore) return
+
+    // 1. Log alert
+    const alertsCol = collection(firestore, "users", user.uid, "alertEvents")
+    addDocumentNonBlocking(alertsCol, {
+      ownerUserId: user.uid,
+      triggeredValue: currentTemp,
+      thresholdSetAtTrigger: threshold,
+      unitAtTrigger: "Celsius",
+      alertEmailSentTo: alertEmail || "non-configuré",
+      timestamp: new Date().toISOString(),
     })
 
-    if (user && firestore) {
-      // 1. Log dans Firestore (Alerte)
-      const alertsCol = collection(firestore, "users", user.uid, "alertEvents")
-      addDocumentNonBlocking(alertsCol, {
-        ownerUserId: user.uid,
-        userPreferenceId: "current",
-        triggeredValue: currentTemp,
-        thresholdSetAtTrigger: threshold,
-        unitAtTrigger: "Celsius",
-        alertEmailSentTo: alertEmail || "non-configuré",
-        timestamp: new Date().toISOString(),
+    // 2. Email alert
+    if (alertEmail && isEmailAlertEnabled) {
+      setIsSendingEmail(true)
+      sendAlertEmail({
+        recipientEmail: alertEmail,
+        temperature: currentTemp,
+        threshold: threshold,
+        unit: "Celsius"
       })
-
-      // 2. Envoi E-mail si configuré
-      if (alertEmail && isEmailAlertEnabled) {
-        setIsSendingEmail(true)
-        sendAlertEmail({
-          recipientEmail: alertEmail,
-          temperature: currentTemp,
-          threshold: threshold,
-          unit: "Celsius"
-        })
-        .then(() => {
-          toast({
-            title: "Alerte envoyée",
-            description: `Un e-mail a été envoyé à ${alertEmail}`,
-          })
-        })
-        .catch(err => {
-          console.error("Email error:", err)
-          toast({
-            variant: "destructive",
-            title: "Échec d'envoi",
-            description: "Impossible d'envoyer l'e-mail d'alerte.",
-          })
-        })
-        .finally(() => setIsSendingEmail(false))
-      }
+      .then(() => {
+        toast({ title: "Alerte envoyée", description: `E-mail envoyé à ${alertEmail}` })
+      })
+      .catch(() => {
+        toast({ variant: "destructive", title: "Échec", description: "Impossible d'envoyer l'e-mail." })
+      })
+      .finally(() => setIsSendingEmail(false))
     }
   }
 
@@ -87,13 +72,11 @@ export function TempGauge() {
 
     const interval = setInterval(() => {
       const prev = currentTempRef.current ?? 25
-      const change = (Math.random() - 0.5) * 2.5
-      const next = prev + change
+      const next = prev + (Math.random() - 0.5) * 2.5
       
       setTemp(next)
       currentTempRef.current = next
 
-      // Enregistrement systématique dans la base de données
       if (user && firestore) {
         const measurementsCol = collection(firestore, "users", user.uid, "temperatureMeasurements")
         addDocumentNonBlocking(measurementsCol, {
@@ -104,7 +87,6 @@ export function TempGauge() {
         })
       }
 
-      // Déclenchement d'alerte
       if (next > threshold) {
         const now = Date.now()
         if (now - lastAlertSentTime.current > 120000) {
@@ -120,7 +102,6 @@ export function TempGauge() {
   if (isLoading || temp === null) return (
     <div className="h-64 flex flex-col items-center justify-center gap-2">
       <Loader2 className="w-6 h-6 animate-spin text-primary" />
-      <p className="text-xs text-muted-foreground">Initialisation du capteur...</p>
     </div>
   )
 
@@ -138,18 +119,13 @@ export function TempGauge() {
         {isHigh && (
           <div className="absolute -bottom-4 bg-accent text-white px-4 py-1 rounded-full text-xs font-bold animate-pulse flex items-center gap-2">
             {isSendingEmail ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
-            {isSendingEmail ? "ENVOI..." : "ALERTE ACTIVE"}
+            {isSendingEmail ? "ENVOI..." : "ALERTE"}
           </div>
         )}
       </div>
       
       <div className="text-center space-y-1">
-        <p className="text-sm font-medium">Seuil critique : <span className="text-primary">{threshold.toFixed(1)}°C</span></p>
-        {alertEmail ? (
-          <p className="text-[10px] text-muted-foreground italic">Alertes vers : {alertEmail}</p>
-        ) : (
-          <p className="text-[10px] text-destructive font-bold uppercase">⚠️ Configurez un e-mail dans les réglages</p>
-        )}
+        <p className="text-sm font-medium">Seuil : <span className="text-primary">{threshold.toFixed(1)}°C</span></p>
       </div>
     </div>
   )
