@@ -1,7 +1,8 @@
+
 "use client"
 
 import { useEffect, useState, useRef } from "react"
-import { Thermometer, Loader2 } from "lucide-react"
+import { Thermometer, Loader2, Send } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase"
 import { doc, collection } from "firebase/firestore"
@@ -21,6 +22,7 @@ export function TempGauge() {
   const { data: settings, isLoading } = useDoc(settingsRef)
   
   const [temp, setTemp] = useState<number | null>(null)
+  const [isSendingEmail, setIsSendingEmail] = useState(false)
   const currentTempRef = useRef<number | null>(null)
   const lastAlertSentTime = useRef<number>(0)
   
@@ -31,11 +33,12 @@ export function TempGauge() {
   const handleTriggerAlert = (currentTemp: number) => {
     toast({
       variant: "destructive",
-      title: "ALERTE : Seuil dépassé",
-      description: `${currentTemp.toFixed(1)}°C détectés.`,
+      title: "SEUIL DÉPASSÉ",
+      description: `${currentTemp.toFixed(1)}°C. Vérification de l'envoi d'alerte...`,
     })
 
     if (user && firestore) {
+      // 1. Log dans Firestore
       const alertsCol = collection(firestore, "users", user.uid, "alertEvents")
       addDocumentNonBlocking(alertsCol, {
         ownerUserId: user.uid,
@@ -47,13 +50,30 @@ export function TempGauge() {
         timestamp: new Date().toISOString(),
       })
 
+      // 2. Envoi E-mail si configuré
       if (alertEmail && isEmailAlertEnabled) {
+        setIsSendingEmail(true)
         sendAlertEmail({
           recipientEmail: alertEmail,
           temperature: currentTemp,
           threshold: threshold,
           unit: "Celsius"
-        }).catch(err => console.error("Email error:", err))
+        })
+        .then(() => {
+          toast({
+            title: "Alerte envoyée",
+            description: `Un e-mail a été envoyé à ${alertEmail}`,
+          })
+        })
+        .catch(err => {
+          console.error("Email error:", err)
+          toast({
+            variant: "destructive",
+            title: "Échec d'envoi",
+            description: "Impossible d'envoyer l'e-mail d'alerte.",
+          })
+        })
+        .finally(() => setIsSendingEmail(false))
       }
     }
   }
@@ -67,20 +87,22 @@ export function TempGauge() {
 
     const interval = setInterval(() => {
       const prev = currentTempRef.current ?? 25
-      const change = (Math.random() - 0.5) * 1.5
+      const change = (Math.random() - 0.5) * 2.5 // Augmentation de la variation pour tester plus vite
       const next = prev + change
       
       setTemp(next)
       currentTempRef.current = next
 
-      if (next > threshold && prev <= threshold) {
+      // Déclenchement si on dépasse le seuil
+      if (next > threshold) {
         const now = Date.now()
+        // Anti-spam : 2 minutes entre chaque e-mail d'alerte
         if (now - lastAlertSentTime.current > 120000) {
           handleTriggerAlert(next)
           lastAlertSentTime.current = now
         }
       }
-    }, 3000)
+    }, 4000)
 
     return () => clearInterval(interval)
   }, [threshold, alertEmail, isEmailAlertEnabled, user, firestore])
@@ -88,6 +110,7 @@ export function TempGauge() {
   if (isLoading || temp === null) return (
     <div className="h-64 flex flex-col items-center justify-center gap-2">
       <Loader2 className="w-6 h-6 animate-spin text-primary" />
+      <p className="text-xs text-muted-foreground">Initialisation du capteur...</p>
     </div>
   )
 
@@ -95,7 +118,7 @@ export function TempGauge() {
 
   return (
     <div className="flex flex-col items-center gap-6 py-8">
-      <div className={`w-64 h-64 rounded-full border-8 flex flex-col items-center justify-center relative bg-card transition-all duration-500 ${isHigh ? 'border-accent shadow-lg' : 'border-primary shadow-sm'}`}>
+      <div className={`w-64 h-64 rounded-full border-8 flex flex-col items-center justify-center relative bg-card transition-all duration-500 ${isHigh ? 'border-accent shadow-2xl scale-105' : 'border-primary shadow-sm'}`}>
         <Thermometer className={`w-8 h-8 mb-2 ${isHigh ? 'text-accent' : 'text-primary'}`} />
         <span className={`text-6xl font-bold ${isHigh ? 'text-accent' : 'text-primary'}`}>
           {temp.toFixed(1)}°
@@ -103,16 +126,19 @@ export function TempGauge() {
         <span className="text-sm text-muted-foreground">Celsius</span>
         
         {isHigh && (
-          <div className="absolute -bottom-4 bg-accent text-white px-4 py-1 rounded-full text-xs font-bold animate-pulse">
-            ALERTE ACTIVE
+          <div className="absolute -bottom-4 bg-accent text-white px-4 py-1 rounded-full text-xs font-bold animate-pulse flex items-center gap-2">
+            {isSendingEmail ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
+            {isSendingEmail ? "ENVOI..." : "ALERTE ACTIVE"}
           </div>
         )}
       </div>
       
-      <div className="text-center">
-        <p className="text-sm font-medium">Seuil : {threshold.toFixed(1)}°C</p>
-        {!alertEmail && (
-          <p className="text-[10px] text-destructive font-bold uppercase mt-1">E-mail manquant dans les réglages</p>
+      <div className="text-center space-y-1">
+        <p className="text-sm font-medium">Seuil critique : <span className="text-primary">{threshold.toFixed(1)}°C</span></p>
+        {alertEmail ? (
+          <p className="text-[10px] text-muted-foreground italic">Alertes vers : {alertEmail}</p>
+        ) : (
+          <p className="text-[10px] text-destructive font-bold uppercase">⚠️ Configurez un e-mail dans les réglages</p>
         )}
       </div>
     </div>
