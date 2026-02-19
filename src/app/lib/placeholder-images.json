@@ -1,0 +1,11 @@
+
+{
+  "placeholderImages": [
+    {
+      "id": "hero-temp",
+      "description": "Temperature monitoring dashboard",
+      "imageUrl": "https://picsum.photos/seed/temp1/1200/800",
+      "imageHint": "temperature monitor"
+    }
+  ]
+}
