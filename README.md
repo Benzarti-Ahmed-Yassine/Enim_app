@@ -9,31 +9,36 @@ Cette application utilise **Next.js 15** avec des fonctionnalités serveur (Serv
 
 Le "Firebase Hosting" classique ne supporte que les sites statiques. Pour que les alertes fonctionnent, vous **devez** utiliser **App Hosting**.
 
-## 🛠️ Installation et Déploiement Facile
+## 🛠️ Comment pousser ce projet sur GitHub (Étapes simples)
 
-### 1. Installation Locale
-1. Téléchargez les fichiers.
-2. Installez les dépendances :
-   ```bash
-   npm install
-   ```
-3. Lancez le serveur :
-   ```bash
-   npm run dev
-   ```
+### 1. Créez un dépôt sur GitHub
+- Allez sur [github.com/new](https://github.com/new).
+- Nommez votre projet (ex: `temp-alert-precision`).
+- Ne cochez **aucune** case (README, .gitignore).
+- Cliquez sur "Create repository".
 
-### 2. Déploiement en 3 étapes (Production)
-1. **GitHub** : Poussez votre code sur un dépôt GitHub (privé ou public).
-2. **Console Firebase** : 
-   - Allez dans **Build > App Hosting**.
-   - Cliquez sur "Get Started" et connectez votre dépôt GitHub.
-3. **Lien Magique** : Firebase va créer automatiquement une URL (se terminant par `.a.run.app` ou `.web.app`). C'est votre lien final !
+### 2. Exécutez ces commandes dans votre terminal
+Ouvrez le terminal dans le dossier du projet et copiez-collez ces lignes une par une :
+
+```bash
+git init
+git add .
+git commit -m "Initial commit: TempAlert setup"
+git branch -M main
+git remote add origin https://github.com/VOTRE_NOM_UTILISATEUR/VOTRE_NOM_REPO.git
+git push -u origin main
+```
+*(Remplacez l'URL par celle fournie par GitHub)*.
+
+## 🌐 Déploiement Firebase App Hosting
+1. Allez dans la [Console Firebase](https://console.firebase.google.com/project/studio-1892302408-8f785/apphosting).
+2. Cliquez sur **"Get Started"** (Commencer).
+3. Connectez votre compte GitHub.
+4. Sélectionnez le dépôt que vous venez de créer.
+5. Firebase déploiera automatiquement votre application et vous donnera le lien final !
 
 ## 📧 Configuration des Alertes
 - Allez dans l'onglet **Settings** de l'application.
 - Entrez jusqu'à **5 adresses e-mail** séparées par des virgules.
 - Définissez votre seuil critique.
 - Le système s'occupe du reste !
-
-## 🔒 Sécurité
-Les comptes sont gérés via **Firebase Authentication**. Par sécurité, l'inscription est désactivée dans l'interface. Créez vos utilisateurs directement dans la console Firebase sous l'onglet "Auth".
