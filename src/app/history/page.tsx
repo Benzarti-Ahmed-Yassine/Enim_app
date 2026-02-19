@@ -1,12 +1,12 @@
 
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Calendar as CalendarIcon, ChevronUp, ChevronDown, Loader2, Database } from "lucide-react"
+import { ChevronUp, ChevronDown, Loader2, Database } from "lucide-react"
 import { useFirestore, useUser, useDoc, useCollection, useMemoFirebase } from "@/firebase"
 import { doc, collection, query, orderBy } from "firebase/firestore"
 
@@ -14,8 +14,12 @@ export default function HistoryPage() {
   const firestore = useFirestore()
   const { user } = useUser()
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
+  const [isMounted, setIsMounted] = useState(false)
 
-  // Récupération du seuil pour le badge de statut
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
   const settingsRef = useMemoFirebase(() => {
     if (!firestore || !user) return null
     return doc(firestore, "users", user.uid, "settings", "current")
@@ -23,7 +27,6 @@ export default function HistoryPage() {
   const { data: settings } = useDoc(settingsRef)
   const threshold = settings?.temperatureThreshold || 30
 
-  // Récupération de TOUTES les mesures triées
   const measurementsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null
     return query(
@@ -82,7 +85,7 @@ export default function HistoryPage() {
                 {measurements.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell className="font-medium">
-                      {new Date(item.timestamp).toLocaleString()}
+                      {isMounted ? new Date(item.timestamp).toLocaleString() : "Loading..."}
                     </TableCell>
                     <TableCell className="font-bold text-lg">
                       {item.value.toFixed(1)}°C

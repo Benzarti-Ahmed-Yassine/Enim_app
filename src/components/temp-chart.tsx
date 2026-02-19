@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useState, useEffect } from "react"
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, ReferenceLine } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { useFirestore, useUser, useCollection, useDoc, useMemoFirebase } from "@/firebase"
@@ -11,8 +11,12 @@ import { Loader2 } from "lucide-react"
 export function TempChart() {
   const firestore = useFirestore()
   const { user } = useUser()
+  const [isMounted, setIsMounted] = useState(false)
 
-  // Récupération du seuil
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
   const settingsRef = useMemoFirebase(() => {
     if (!firestore || !user) return null
     return doc(firestore, "users", user.uid, "settings", "current")
@@ -20,7 +24,6 @@ export function TempChart() {
   const { data: settings } = useDoc(settingsRef)
   const threshold = settings?.temperatureThreshold || 30
 
-  // Récupération des 10 dernières mesures réelles
   const measurementsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null
     return query(
@@ -32,13 +35,12 @@ export function TempChart() {
 
   const { data: rawData, isLoading } = useCollection(measurementsQuery)
 
-  // Inverser l'ordre pour l'affichage chronologique
   const chartData = useMemo(() => {
     if (!rawData) return []
     return [...rawData].reverse()
   }, [rawData])
 
-  if (isLoading) {
+  if (!isMounted || isLoading) {
     return (
       <Card className="w-full h-[400px] flex items-center justify-center border-none shadow-lg">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
