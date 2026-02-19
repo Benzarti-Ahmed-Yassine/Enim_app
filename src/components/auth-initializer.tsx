@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useAuth, useUser } from '@/firebase';
+import { useUser } from '@/firebase';
 import { useRouter, usePathname } from 'next/navigation';
 
 /**
@@ -16,6 +16,8 @@ export function AuthInitializer() {
   const pathname = usePathname();
 
   useEffect(() => {
+    // On ne redirige que si le chargement de l'auth est fini, qu'il n'y a pas d'utilisateur,
+    // et qu'on n'est pas déjà sur la page de login.
     if (!isUserLoading && !user && pathname !== '/login') {
       router.push('/login');
     }

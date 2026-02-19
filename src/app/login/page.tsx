@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,7 +11,6 @@ import { useAuth, useUser, initiateEmailSignIn, initiateEmailSignUp } from '@/fi
 import { useRouter } from 'next/navigation';
 import { LogIn, UserPlus, Loader2, ShieldCheck, Mail, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { signOut } from 'firebase/auth';
 
 export default function LoginPage() {
   const auth = useAuth();
@@ -23,13 +22,22 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Redirection si déjà connecté
+  // Correction : Utilisation de useEffect pour la redirection afin d'éviter l'erreur "Cannot update a component while rendering"
+  useEffect(() => {
+    if (user && !isUserLoading) {
+      router.push('/');
+    }
+  }, [user, isUserLoading, router]);
+
   if (user && !isUserLoading) {
-    router.push('/');
-    return null;
+    return (
+      <div className="flex items-center justify-center min-h-[80vh]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
-  const handleSignIn = async (e: React.FormEvent) => {
+  const handleSignIn = (e: React.FormEvent) => {
     e.preventDefault();
     if (!auth) return;
     setIsLoading(true);
@@ -37,13 +45,12 @@ export default function LoginPage() {
       initiateEmailSignIn(auth, email, password);
       toast({ title: "Tentative de connexion...", description: "Veuillez patienter." });
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Erreur", description: "Identifiants invalides." });
-    } finally {
+      toast({ variant: "destructive", title: "Erreur", description: "Une erreur est survenue lors de la connexion." });
       setIsLoading(false);
     }
   };
 
-  const handleSignUp = async (e: React.FormEvent) => {
+  const handleSignUp = (e: React.FormEvent) => {
     e.preventDefault();
     if (!auth) return;
     setIsLoading(true);
@@ -52,7 +59,6 @@ export default function LoginPage() {
       toast({ title: "Création du compte...", description: "Bienvenue sur TempAlert." });
     } catch (error: any) {
       toast({ variant: "destructive", title: "Erreur", description: "Impossible de créer le compte." });
-    } finally {
       setIsLoading(false);
     }
   };
@@ -105,7 +111,7 @@ export default function LoginPage() {
                     />
                   </div>
                 </div>
-                <Button type="submit" className="w-full gap-2" disabled={isLoading}>
+                <Button type="submit" className="w-full gap-2" disabled={isLoading || isUserLoading}>
                   {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogIn className="w-4 h-4" />}
                   Se Connecter
                 </Button>
@@ -144,7 +150,7 @@ export default function LoginPage() {
                     />
                   </div>
                 </div>
-                <Button type="submit" className="w-full gap-2" variant="secondary" disabled={isLoading}>
+                <Button type="submit" className="w-full gap-2" variant="secondary" disabled={isLoading || isUserLoading}>
                   {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
                   Créer un compte
                 </Button>
