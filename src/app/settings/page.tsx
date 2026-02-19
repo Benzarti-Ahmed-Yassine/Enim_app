@@ -9,28 +9,28 @@ import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Slider } from "@/components/ui/slider"
 import { useToast } from "@/hooks/use-toast"
-import { Settings as SettingsIcon, Mail, BellRing, Save, Loader2 } from "lucide-react"
+import { Settings as SettingsIcon, Mail, BellRing, Save, Loader2, AlertCircle } from "lucide-react"
 import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase"
 import { doc } from "firebase/firestore"
 import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates"
 
 export default function SettingsPage() {
   const { firestore } = useFirestore()
-  const { user } = useUser()
+  const { user, isUserLoading: isAuthLoading } = useUser()
   const { toast } = useToast()
 
-  // Correction du chemin Firestore selon backend.json : /users/{userId}/settings
   const settingsRef = useMemoFirebase(() => {
     if (!firestore || !user) return null
     return doc(firestore, "users", user.uid, "settings")
   }, [firestore, user])
 
-  const { data: settings, isLoading } = useDoc(settingsRef)
+  const { data: settings, isLoading: isDocLoading } = useDoc(settingsRef)
 
   const [threshold, setThreshold] = useState(30)
   const [email, setEmail] = useState("admin@tempalert.io")
   const [emailAlerts, setEmailAlerts] = useState(true)
   const [pushNotifications, setPushNotifications] = useState(true)
+  const [isSaving, setIsSaving] = useState(false)
 
   useEffect(() => {
     if (settings) {
@@ -42,8 +42,17 @@ export default function SettingsPage() {
   }, [settings])
 
   const handleSave = () => {
-    if (!settingsRef || !user) return
+    if (!settingsRef || !user) {
+      toast({
+        variant: "destructive",
+        title: "Erreur d'authentification",
+        description: "Vous devez être connecté pour enregistrer les paramètres.",
+      })
+      return
+    }
 
+    setIsSaving(true)
+    
     setDocumentNonBlocking(settingsRef, {
       id: "settings",
       externalAuthId: user.uid,
@@ -56,16 +65,29 @@ export default function SettingsPage() {
       createdAt: settings?.createdAt || new Date().toISOString(),
     }, { merge: true })
 
-    toast({
-      title: "Paramètres enregistrés",
-      description: "Vos seuils et préférences ont été mis à jour dans le cloud.",
-    })
+    // Simuler un court délai pour le feedback visuel
+    setTimeout(() => {
+      setIsSaving(false)
+      toast({
+        title: "Paramètres enregistrés",
+        description: "Vos seuils et préférences ont été mis à jour avec succès.",
+      })
+    }, 500)
   }
 
-  if (isLoading) {
+  if (isAuthLoading || (user && isDocLoading)) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 gap-4">
+        <AlertCircle className="w-12 h-12 text-muted-foreground" />
+        <p className="text-muted-foreground">Initialisation de la session en cours...</p>
       </div>
     )
   }
@@ -84,13 +106,23 @@ export default function SettingsPage() {
         <Card className="border-none shadow-lg">
           <CardHeader>
             <CardTitle>Contrôle du Seuil</CardTitle>
-            <CardDescription>Définissez la limite de température critique manuellement</CardDescription>
+            <CardDescription>Définissez la limite de température critique manuellement ou via le slider</CardDescription>
           </CardHeader>
           <CardContent className="space-y-8">
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label className="text-lg">Valeur Critique</Label>
-                <span className="text-2xl font-bold text-primary">{threshold}°C</span>
+              <div className="flex items-center justify-between gap-4">
+                <Label className="text-lg">Valeur Critique (°C)</Label>
+                <div className="flex items-center gap-3">
+                  <Input 
+                    type="number" 
+                    value={threshold} 
+                    onChange={(e) => setThreshold(Number(e.target.value))}
+                    className="w-24 text-right font-bold text-primary text-xl border-primary/20"
+                    min={0}
+                    max={100}
+                    step={0.1}
+                  />
+                </div>
               </div>
               <Slider
                 value={[threshold]}
@@ -154,9 +186,13 @@ export default function SettingsPage() {
             </div>
           </CardContent>
           <CardFooter className="bg-muted/30 py-4 flex justify-end">
-            <Button onClick={handleSave} className="gap-2 px-8">
-              <Save className="w-4 h-4" />
-              Appliquer les Changements
+            <Button onClick={handleSave} disabled={isSaving} className="gap-2 px-8 min-w-[200px]">
+              {isSaving ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Save className="w-4 h-4" />
+              )}
+              {isSaving ? "Enregistrement..." : "Appliquer les Changements"}
             </Button>
           </CardFooter>
         </Card>

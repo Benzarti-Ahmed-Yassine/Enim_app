@@ -4,6 +4,7 @@ import './globals.css';
 import { Navigation } from '@/components/navigation';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
+import { AuthInitializer } from '@/components/auth-initializer';
 
 export const metadata: Metadata = {
   title: 'TempAlert - Precision Monitoring',
@@ -24,6 +25,7 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased bg-background min-h-screen flex flex-col">
         <FirebaseClientProvider>
+          <AuthInitializer />
           <Navigation />
           <main className="flex-1 pb-24 pt-4 md:pt-20 px-4 max-w-5xl mx-auto w-full">
             {children}
