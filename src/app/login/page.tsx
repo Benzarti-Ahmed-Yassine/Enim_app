@@ -5,11 +5,10 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth, useUser } from '@/firebase';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import { LogIn, UserPlus, Loader2, ShieldCheck, Mail, Lock } from 'lucide-react';
+import { LogIn, Loader2, ShieldCheck, Mail, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function LoginPage() {
@@ -39,24 +38,7 @@ export default function LoginPage() {
       toast({ 
         variant: "destructive", 
         title: "Échec de connexion", 
-        description: "Vérifiez vos identifiants ou créez un compte." 
-      });
-      setIsLoading(false);
-    }
-  };
-
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!auth) return;
-    setIsLoading(true);
-    try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      toast({ title: "Compte créé", description: "Bienvenue sur TempAlert." });
-    } catch (error: any) {
-      toast({ 
-        variant: "destructive", 
-        title: "Erreur d'inscription", 
-        description: error.message || "Impossible de créer le compte." 
+        description: "Identifiants incorrects. L'inscription est désactivée." 
       });
       setIsLoading(false);
     }
@@ -77,59 +59,49 @@ export default function LoginPage() {
           <div className="mx-auto bg-primary w-12 h-12 rounded-xl flex items-center justify-center mb-2">
             <ShieldCheck className="text-white w-8 h-8" />
           </div>
-          <CardTitle className="text-2xl font-bold text-primary">Accès Sécurisé</CardTitle>
-          <CardDescription>Entrez vos identifiants pour gérer TempAlert</CardDescription>
+          <CardTitle className="text-2xl font-bold text-primary">Accès Restreint</CardTitle>
+          <CardDescription>Connectez-vous avec votre compte administrateur</CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="login">Connexion</TabsTrigger>
-              <TabsTrigger value="register">Inscription</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="login">
-              <form onSubmit={handleSignIn} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">E-mail</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                    <Input id="email" type="email" placeholder="nom@exemple.com" className="pl-10" value={email} onChange={(e) => setEmail(e.target.value)} required />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">Mot de passe</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                    <Input id="password" type="password" className="pl-10" value={password} onChange={(e) => setPassword(e.target.value)} required />
-                  </div>
-                </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <LogIn className="w-4 h-4 mr-2" />}
-                  Se Connecter
-                </Button>
-              </form>
-            </TabsContent>
-
-            <TabsContent value="register">
-              <form onSubmit={handleSignUp} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="reg-email">E-mail</Label>
-                  <Input id="reg-email" type="email" placeholder="nom@exemple.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="reg-password">Mot de passe</Label>
-                  <Input id="reg-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
-                </div>
-                <Button type="submit" className="w-full" variant="secondary" disabled={isLoading}>
-                  {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <UserPlus className="w-4 h-4 mr-2" />}
-                  Créer un compte
-                </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
+          <form onSubmit={handleSignIn} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">E-mail professionnel</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                <Input 
+                  id="email" 
+                  type="email" 
+                  placeholder="nom@exemple.com" 
+                  className="pl-10" 
+                  value={email} 
+                  onChange={(e) => setEmail(e.target.value)} 
+                  required 
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Mot de passe</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                <Input 
+                  id="password" 
+                  type="password" 
+                  className="pl-10" 
+                  value={password} 
+                  onChange={(e) => setPassword(e.target.value)} 
+                  required 
+                />
+              </div>
+            </div>
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <LogIn className="w-4 h-4 mr-2" />}
+              Se Connecter
+            </Button>
+          </form>
         </CardContent>
-        <CardFooter className="flex justify-center text-xs text-muted-foreground">
-          Authentification sécurisée par Firebase
+        <CardFooter className="flex flex-col gap-2 justify-center text-[10px] text-muted-foreground text-center">
+          <p>L'inscription de nouveaux comptes est gérée par l'administrateur système.</p>
+          <p>Authentification sécurisée par Firebase</p>
         </CardFooter>
       </Card>
     </div>
