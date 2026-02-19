@@ -1,42 +1,26 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    /**
-     * TEMP-ALERT SECURITY RULES
-     * Modèle de propriété stricte : Un utilisateur ne peut accéder qu'à ses propres données.
-     */
-
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
+    // Fonction utilitaire pour vérifier l'appartenance d'un document
     function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
+      return request.auth != null && request.auth.uid == userId;
     }
 
-    // Groupe toutes les règles par utilisateur pour plus de clarté et de fiabilité
     match /users/{userId} {
-      
-      // Paramètres (document unique 'current')
-      match /settings/current {
+      // Autorise l'accès complet aux réglages de l'utilisateur
+      match /settings/{document=**} {
         allow read, write: if isOwner(userId);
       }
 
-      // Mesures de température (collection historique)
-      match /temperatureMeasurements/{id} {
+      // Autorise l'accès aux mesures de température
+      match /temperatureMeasurements/{document=**} {
         allow read, write: if isOwner(userId);
       }
 
-      // Événements d'alerte (collection logs)
-      match /alertEvents/{id} {
+      // Autorise l'accès aux logs d'alertes
+      match /alertEvents/{document=**} {
         allow read, write: if isOwner(userId);
       }
-    }
-
-    // Interdiction par défaut pour tout le reste
-    match /{document=**} {
-      allow read, write: if false;
     }
   }
 }

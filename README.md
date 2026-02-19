@@ -2,39 +2,37 @@
 
 Système de surveillance de température en temps réel avec alertes e-mail intelligentes.
 
-## Architecture
-- **Framework :** Next.js 15 (App Router)
-- **Base de données :** Firestore (Temps réel)
-- **Authentification :** Firebase Auth (E-mail/Mot de passe)
-- **IA/Alertes :** Genkit + Nodemailer (Gmail)
+## 🚀 Comment exporter/télécharger ce projet
+1. **Copie manuelle** : Copiez le contenu des fichiers affichés dans cette interface vers votre ordinateur local.
+2. **Structure du projet** :
+   - `/src` : Code source Next.js (Frontend & Server Actions)
+   - `/public` : Actifs statiques
+   - `package.json` : Dépendances
+   - `firestore.rules` : Sécurité de la base de données
+   - `.env` : Vos clés secrètes (API Key, etc.)
 
-## Procédure d'Hébergement (Firebase App Hosting)
-
-### 1. Préparation du projet
-L'application est configurée pour être déployée via **Firebase App Hosting**, qui gère automatiquement le build Next.js et les Server Actions.
-
-### 2. Déploiement vers GitHub
-1. Créez un nouveau dépôt sur GitHub.
-2. Poussez votre code :
+## 🛠️ Installation Locale
+1. Installez les dépendances :
    ```bash
-   git init
-   git add .
-   git commit -m "Initial commit"
-   git branch -M main
-   git remote add origin https://github.com/VOTRE_NOM/VOTRE_REPO.git
-   git push -u origin main
+   npm install
+   ```
+2. Lancez le serveur de développement :
+   ```bash
+   npm run dev
    ```
 
-### 3. Configuration dans la Console Firebase
-1. Allez sur la [Console Firebase](https://console.firebase.google.com/).
-2. Sélectionnez votre projet.
-3. Dans le menu de gauche, allez dans **Build > App Hosting**.
-4. Cliquez sur **Get Started** et connectez votre compte GitHub.
-5. Sélectionnez votre dépôt et branche (`main`).
-6. Firebase créera automatiquement un backend App Hosting et déploiera votre application à chaque "push" sur GitHub.
+## ☁️ Hébergement (Firebase App Hosting)
+L'application est conçue pour **Firebase App Hosting** (Next.js 15).
 
-### 4. Variables d'environnement
-Dans la console App Hosting, assurez-vous d'ajouter vos secrets si nécessaire (comme `GEMINI_API_KEY` pour Genkit).
+1. **GitHub** : Poussez votre code sur un dépôt GitHub.
+2. **Console Firebase** : 
+   - Allez dans **Build > App Hosting**.
+   - Connectez votre dépôt.
+   - Firebase s'occupe de tout (Build, SSL, CDN).
+3. **Important** : N'utilisez pas "Firebase Hosting" classique (statique), car il ne supporte pas les fonctions serveur de Next.js nécessaires pour l'envoi d'e-mails.
 
-## Sécurité
-Les règles Firestore (`firestore.rules`) garantissent que chaque utilisateur ne peut lire et écrire que ses propres données de capteurs et réglages.
+## 🔒 Sécurité
+Les règles Firestore (`firestore.rules`) protègent vos données. Seul l'utilisateur connecté peut accéder à son propre historique et à ses réglages.
+
+## 📧 Alertes
+Configurez jusqu'à **5 destinataires** dans l'onglet "Settings". Le système utilise Genkit pour générer des messages d'alerte professionnels.
