@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { generateDailyMockData, TemperatureReading, getThreshold } from "@/lib/temp-data"
-import { Calendar as CalendarIcon, ArrowDownWideArrow } from "lucide-react"
+import { Calendar as CalendarIcon, ArrowDownWideNarrow } from "lucide-react"
 
 export default function HistoryPage() {
   const [data, setData] = useState<TemperatureReading[]>([])
@@ -35,7 +35,7 @@ export default function HistoryPage() {
             <CardDescription>Detailed timestamp log</CardDescription>
           </div>
           <Badge variant="outline" className="gap-2">
-            <ArrowDownWideArrow className="w-3 h-3" />
+            <ArrowDownWideNarrow className="w-3 h-3" />
             Most Recent First
           </Badge>
         </CardHeader>
