@@ -14,7 +14,7 @@ export function TempGauge() {
   const { user } = useUser()
   const { toast } = useToast()
   
-  // Correction du chemin Firestore pour lire le seuil
+  // Récupération des paramètres utilisateur
   const settingsRef = useMemoFirebase(() => {
     if (!firestore || !user) return null
     return doc(firestore, "users", user.uid, "settings")
@@ -23,45 +23,25 @@ export function TempGauge() {
   const { data: settings, isLoading } = useDoc(settingsRef)
   
   const [temp, setTemp] = useState<number | null>(null)
+  const currentTempRef = useRef<number | null>(null)
+  
   const threshold = settings?.temperatureThreshold || 30
   const alertEmail = settings?.alertEmail
   const isEmailAlertEnabled = settings?.emailAlerts !== false
 
   const lastAlertSentTime = useRef<number>(0)
 
-  useEffect(() => {
-    const initialTemp = 24.5 + Math.random() * 5
-    setTemp(initialTemp)
-
-    const interval = setInterval(() => {
-      setTemp(prev => {
-        if (prev === null) return 25
-        const change = (Math.random() - 0.5) * 1.5
-        const next = prev + change
-        
-        if (next > threshold && prev <= threshold) {
-          const now = Date.now()
-          if (now - lastAlertSentTime.current > 120000) {
-            handleTriggerAlert(next)
-            lastAlertSentTime.current = now
-          }
-        }
-        
-        return next
-      })
-    }, 3000)
-
-    return () => clearInterval(interval)
-  }, [threshold, alertEmail, isEmailAlertEnabled])
-
-  const handleTriggerAlert = async (currentTemp: number) => {
+  // Déclenchement de l'alerte
+  const handleTriggerAlert = (currentTemp: number) => {
+    // Affichage immédiat du toast (hors cycle de rendu)
     toast({
       variant: "destructive",
       title: "Seuil de Température Dépassé !",
-      description: `Température : ${currentTemp.toFixed(1)}°C (Seuil: ${threshold}°C).`,
+      description: `Température : ${currentTemp.toFixed(1)}°C (Seuil: ${threshold.toFixed(1)}°C).`,
     })
 
     if (user && firestore) {
+      // Log de l'événement dans Firestore
       const alertsCol = collection(firestore, "users", user.uid, "alertEvents")
       addDocumentNonBlocking(alertsCol, {
         ownerUserId: user.uid,
@@ -73,21 +53,49 @@ export function TempGauge() {
         timestamp: new Date().toISOString(),
       })
 
+      // Envoi de l'e-mail via Genkit
       if (alertEmail && isEmailAlertEnabled) {
-        try {
-          await sendAlertEmail({
-            recipientEmail: alertEmail,
-            temperature: currentTemp,
-            threshold: threshold,
-            unit: "Celsius"
-          })
-          console.log("Alerte e-mail déclenchée avec succès via Genkit")
-        } catch (error) {
-          console.error("Erreur lors de l'envoi de l'alerte e-mail:", error)
-        }
+        sendAlertEmail({
+          recipientEmail: alertEmail,
+          temperature: currentTemp,
+          threshold: threshold,
+          unit: "Celsius"
+        }).catch(err => console.error("Erreur e-mail alerte:", err))
       }
     }
   }
+
+  useEffect(() => {
+    // Initialisation
+    if (currentTempRef.current === null) {
+      const initial = 24.5 + Math.random() * 5
+      setTemp(initial)
+      currentTempRef.current = initial
+    }
+
+    // Simulation du capteur
+    const interval = setInterval(() => {
+      const prev = currentTempRef.current ?? 25
+      const change = (Math.random() - 0.5) * 1.5
+      const next = prev + change
+      
+      // Mise à jour de l'état pour l'UI et du ref pour la logique
+      setTemp(next)
+      currentTempRef.current = next
+
+      // Logique d'alerte : franchissement de seuil
+      if (next > threshold && prev <= threshold) {
+        const now = Date.now()
+        // Anti-spam de 2 minutes
+        if (now - lastAlertSentTime.current > 120000) {
+          handleTriggerAlert(next)
+          lastAlertSentTime.current = now
+        }
+      }
+    }, 3000)
+
+    return () => clearInterval(interval)
+  }, [threshold, alertEmail, isEmailAlertEnabled])
 
   if (isLoading || temp === null) return (
     <div className="h-64 flex flex-col items-center justify-center gap-2">
@@ -122,7 +130,7 @@ export function TempGauge() {
       </div>
       
       <div className="text-center space-y-1">
-        <p className="text-sm font-medium text-muted-foreground">Seuil configuré : {threshold}°C</p>
+        <p className="text-sm font-medium text-muted-foreground">Seuil configuré : {threshold.toFixed(1)}°C</p>
         <p className="text-xs text-muted-foreground">Dernière mise à jour : instantanée</p>
         {!alertEmail && (
           <p className="text-[10px] text-destructive font-bold uppercase mt-2">E-mail non configuré dans les paramètres</p>
