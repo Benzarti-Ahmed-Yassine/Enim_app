@@ -38,7 +38,7 @@ export function TempGauge() {
     })
 
     if (user && firestore) {
-      // 1. Log dans Firestore
+      // 1. Log dans Firestore (Alerte)
       const alertsCol = collection(firestore, "users", user.uid, "alertEvents")
       addDocumentNonBlocking(alertsCol, {
         ownerUserId: user.uid,
@@ -87,22 +87,32 @@ export function TempGauge() {
 
     const interval = setInterval(() => {
       const prev = currentTempRef.current ?? 25
-      const change = (Math.random() - 0.5) * 2.5 // Augmentation de la variation pour tester plus vite
+      const change = (Math.random() - 0.5) * 2.5
       const next = prev + change
       
       setTemp(next)
       currentTempRef.current = next
 
-      // Déclenchement si on dépasse le seuil
+      // Enregistrement systématique dans la base de données
+      if (user && firestore) {
+        const measurementsCol = collection(firestore, "users", user.uid, "temperatureMeasurements")
+        addDocumentNonBlocking(measurementsCol, {
+          ownerUserId: user.uid,
+          value: next,
+          unit: "Celsius",
+          timestamp: new Date().toISOString(),
+        })
+      }
+
+      // Déclenchement d'alerte
       if (next > threshold) {
         const now = Date.now()
-        // Anti-spam : 2 minutes entre chaque e-mail d'alerte
         if (now - lastAlertSentTime.current > 120000) {
           handleTriggerAlert(next)
           lastAlertSentTime.current = now
         }
       }
-    }, 4000)
+    }, 5000)
 
     return () => clearInterval(interval)
   }, [threshold, alertEmail, isEmailAlertEnabled, user, firestore])
