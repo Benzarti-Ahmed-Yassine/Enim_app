@@ -1,3 +1,10 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "enim-logo",
+      "description": "Logo officiel ENIM Monastir",
+      "imageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTAA9PUorWwTxECMDSjnBOt3vG3hxX84Qu05A&s",
+      "imageHint": "logo enim"
+    }
+  ]
 }
