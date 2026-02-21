@@ -3,7 +3,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { LayoutDashboard, History, Settings, LogOut, LogIn, User } from "lucide-react"
+import { LayoutDashboard, History, Settings, LogOut, LogIn, User, Bell } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useUser, useAuth } from "@/firebase"
 import { signOut } from "firebase/auth"
@@ -52,7 +52,7 @@ export function Navigation() {
                 alt="ENIM Logo" 
                 fill 
                 className="object-contain p-1"
-                data-ai-hint={enimLogo.imageHint}
+                priority
               />
             )}
           </div>
@@ -79,7 +79,12 @@ export function Navigation() {
           )
         })}
 
-        <div className="flex items-center md:ml-4">
+        <div className="flex items-center gap-2 md:ml-4">
+          <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:text-primary hidden md:flex">
+            <Bell className="w-5 h-5" />
+            <span className="absolute top-2 right-2 w-2 h-2 bg-accent rounded-full border-2 border-background"></span>
+          </Button>
+
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
