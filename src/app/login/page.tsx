@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth, useUser } from '@/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import { LogIn, Loader2, ShieldCheck, Mail, Lock } from 'lucide-react';
+import { LogIn, Loader2, ShieldCheck, Mail, Lock, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function LoginPage() {
@@ -59,23 +59,22 @@ export default function LoginPage() {
           <div className="mx-auto bg-primary w-14 h-14 rounded-2xl flex items-center justify-center mb-2 shadow-lg shadow-primary/20">
             <ShieldCheck className="text-white w-9 h-9" />
           </div>
-          <CardTitle className="text-2xl font-bold text-primary">Accès Restreint</CardTitle>
-          <CardDescription>
-            Identifiez-vous pour accéder au monitoring.
-            <br />
-            <span className="text-[10px] text-muted-foreground italic">Les comptes sont gérés par l'administrateur.</span>
+          <CardTitle className="text-2xl font-bold text-primary tracking-tight">Accès Sécurisé</CardTitle>
+          <CardDescription className="flex items-center justify-center gap-2 text-amber-600 font-medium bg-amber-50 py-1 px-2 rounded-md border border-amber-100">
+            <AlertCircle className="w-4 h-4" />
+            Accès réservé au personnel autorisé
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSignIn} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="login-email">E-mail</Label>
+              <Label htmlFor="login-email">Identifiant Email</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                 <Input 
                   id="login-email" 
                   type="email" 
-                  placeholder="nom@exemple.com" 
+                  placeholder="admin@tempalert.com" 
                   className="pl-10 h-11" 
                   value={email} 
                   onChange={(e) => setEmail(e.target.value)} 
@@ -97,15 +96,19 @@ export default function LoginPage() {
                 />
               </div>
             </div>
-            <Button type="submit" className="w-full h-11 text-base font-semibold" disabled={isLoading}>
+            <Button type="submit" className="w-full h-11 text-base font-semibold shadow-md" disabled={isLoading}>
               {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <LogIn className="w-5 h-5 mr-2" />}
               Se Connecter
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="flex flex-col gap-2 justify-center text-[10px] text-muted-foreground text-center">
-          <p>Système de Surveillance TempAlert v2.0</p>
-          <p className="opacity-50 font-mono">SECURE AUTHENTICATION ENDPOINT</p>
+        <CardFooter className="flex flex-col gap-2 justify-center text-[11px] text-muted-foreground text-center border-t pt-4">
+          <p className="font-semibold text-primary/60 italic">Aucune inscription publique autorisée.</p>
+          <p>Les comptes sont créés exclusivement par l'Administrateur Système.</p>
+          <div className="mt-2 pt-2 border-t w-full flex justify-between px-4 opacity-40 font-mono">
+            <span>SECURE GATEWAY</span>
+            <span>V2.4.0</span>
+          </div>
         </CardFooter>
       </Card>
     </div>

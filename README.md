@@ -1,37 +1,67 @@
-# TempAlert - Precision Monitoring (Mode Production)
+# TempAlert - Precision Monitoring (Production)
 
-Système de surveillance de température avec Dashboard Cloud et Alertes Multi-E-mails.
+Système de surveillance de température haute précision avec Dashboard Cloud et Alertes IA.
 
-## 🔒 Sécurité & Comptes
-Pour cette version, la création de compte est **désactivée pour le public**. Seul l'administrateur peut ajouter des utilisateurs :
-1. Accédez à la [Console Firebase](https://console.firebase.google.com/).
-2. Allez dans **Build > Authentication**.
-3. Cliquez sur **Add user** pour créer un identifiant (Email/Mot de passe).
+## 🔒 Accès & Sécurité
+- **Mode Connexion Uniquement** : La création de compte publique est désactivée.
+- **Gestion Admin** : Seul l'administrateur peut créer des accès via la [Console Firebase > Authentication](https://console.firebase.google.com/).
 
-## 🚀 Déploiement (Firebase App Hosting)
+## 🔌 Intégration Hardware (Arduino / ESP32)
+Le dashboard est conçu pour afficher les données envoyées par vos capteurs en temps réel via Firestore.
 
-Cette application utilise **Firebase App Hosting** pour supporter les fonctionnalités serveurs.
+### 1. Configuration Arduino (Exemple ESP32)
+Utilisez le code suivant pour envoyer vos données de température (via un capteur DS18B20 ou DHT22) directement à votre base de données :
 
-### 1. Préparation GitHub
-- Créez un nouveau dépôt sur GitHub.
-- Poussez votre code :
-```bash
-git init
-git add .
-git commit -m "Initial commit"
-git branch -M main
-git remote add origin https://github.com/VOTRE_NOM/VOTRE_PROJET.git
-git push -u origin main
+```cpp
+#include <WiFi.h>
+#include <HTTPClient.h>
+
+const char* ssid = "VOTRE_WIFI";
+const char* password = "VOTRE_MOT_DE_PASSE";
+
+// Identifiants de votre projet
+const String projectId = "studio-1892302408-8f785";
+const String userId = "VOTRE_USER_UID_PROPRIETAIRE"; // Trouvez-le dans la console Auth
+const String apiKey = "VOTRE_API_KEY";
+
+void setup() {
+  Serial.begin(115200);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) { delay(500); Serial.print("."); }
+  Serial.println("\nWiFi Connecté");
+}
+
+void loop() {
+  if (WiFi.status() == WL_CONNECTED) {
+    HTTPClient http;
+    // URL REST API pour Firestore
+    String url = "https://firestore.googleapis.com/v1/projects/" + projectId + "/databases/(default)/documents/users/" + userId + "/temperatureMeasurements?key=" + apiKey;
+    
+    http.begin(url);
+    http.addHeader("Content-Type", "application/json");
+
+    float temp = 25.5 + random(0, 50) / 10.0; // Remplacez par votre lecture capteur reelle
+    
+    String json = "{\"fields\": {"
+                  "\"ownerUserId\": {\"stringValue\": \"" + userId + "\"},"
+                  "\"value\": {\"doubleValue\": " + String(temp) + "},"
+                  "\"unit\": {\"stringValue\": \"Celsius\"},"
+                  "\"timestamp\": {\"stringValue\": \"2024-05-20T12:00:00Z\"}" // Generer un ISO8601 dynamique si possible
+                  "}}";
+
+    int httpResponseCode = http.POST(json);
+    Serial.print("HTTP Code: "); Serial.println(httpResponseCode);
+    http.end();
+  }
+  delay(10000); // Envoi toutes les 10 secondes
+}
 ```
 
-### 2. Configuration Firebase Console
-- Menu de gauche : **Build > App Hosting**.
-- Cliquez sur **Commencer**.
-- Connectez votre compte GitHub et sélectionnez votre dépôt.
-- Laissez les paramètres par défaut et cliquez sur **Déployer**.
+## 🚀 Déploiement Cloud (App Hosting)
+1. Poussez votre code sur GitHub.
+2. Allez dans la [Console Firebase > App Hosting](https://console.firebase.google.com/).
+3. Connectez votre dépôt.
+4. Le lien public sera généré automatiquement à la fin du déploiement.
 
-### 3. Plan Blaze
-Note : Firebase App Hosting nécessite le plan **Blaze**. Les services restent gratuits tant que vous restez dans les limites du quota gratuit.
-
-## 📧 Alertes Multi-E-mails
-Vous pouvez configurer jusqu'à **5 adresses e-mail** dans les paramètres. Le système enverra une alerte IA personnalisée à tous les destinataires simultanément en cas de dépassement de seuil.
+## 📧 Alertes IA
+Configurez jusqu'à **5 e-mails** dans les paramètres. En cas de dépassement, une alerte rédigée par Gemini AI sera envoyée à tous les destinataires simultanément.
