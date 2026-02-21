@@ -1,4 +1,5 @@
-# TempAlert - Precision Monitoring (Production)
+
+# TempAlert - Precision Monitoring (Production ENIM)
 
 Système de surveillance de température haute précision avec Dashboard Cloud et Alertes IA.
 
@@ -27,6 +28,7 @@ const char* password = "VOTRE_MOT_DE_PASSE";
 const String projectId = "studio-1892302408-8f785";
 const String userId = "VOTRE_USER_UID"; // Exemple: VbFindRs3CbYF8etqhOVF6OKHDX2
 const String apiKey = "AIzaSyAfe1yAsHi5gHCxDPPk0tJyP-Y5D7KBF28";   
+
 void setup() {
   Serial.begin(115200);
   WiFi.begin(ssid, password);
@@ -70,4 +72,4 @@ void loop() {
 4. Le lien public sera généré automatiquement à la fin du déploiement.
 
 ## 📧 Alertes IA
-Configurez jusqu'à **5 e-mails** dans les paramètres. En cas de dépassement, une alerte rédigée par Gemini AI sera envoyée à tous les destinataires simultanément.
+Configurez jusqu'à **5 e-mails** dans les paramètres. En cas de dépassement, une alerte rédigée par Gemini IA sera envoyée à tous les destinataires simultanément.

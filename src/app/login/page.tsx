@@ -61,9 +61,9 @@ export default function LoginPage() {
     <div className="flex items-center justify-center min-h-[80vh] px-4">
       <Card className="w-full max-w-md border-none shadow-2xl bg-white/80 backdrop-blur-sm">
         <CardHeader className="text-center space-y-2">
-          <div className="mx-auto bg-white w-20 h-20 rounded-2xl flex items-center justify-center mb-2 shadow-lg border">
+          <div className="mx-auto bg-white w-24 h-24 rounded-2xl flex items-center justify-center mb-2 shadow-lg border p-2">
             {enimLogo && (
-              <div className="relative w-16 h-16">
+              <div className="relative w-full h-full">
                 <Image 
                   src={enimLogo.imageUrl} 
                   alt="ENIM Logo" 

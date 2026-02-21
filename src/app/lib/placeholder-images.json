@@ -2,22 +2,10 @@
 {
   "placeholderImages": [
     {
-      "id": "hero-temp",
-      "description": "Tableau de bord de surveillance de la température",
-      "imageUrl": "https://picsum.photos/seed/temp1/1200/800",
-      "imageHint": "moniteur température"
-    },
-    {
       "id": "enim-logo",
-      "description": "Logo ENIM Monastir",
+      "description": "Logo officiel ENIM Monastir",
       "imageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTAA9PUorWwTxECMDSjnBOt3vG3hxX84Qu05A&s",
       "imageHint": "logo enim"
-    },
-    {
-      "id": "favicon",
-      "description": "Favicon App",
-      "imageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTAA9PUorWwTxECMDSjnBOt3vG3hxX84Qu05A&s",
-      "imageHint": "favicon enim"
     }
   ]
 }
