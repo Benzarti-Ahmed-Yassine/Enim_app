@@ -6,6 +6,12 @@
       "description": "Temperature monitoring dashboard",
       "imageUrl": "https://picsum.photos/seed/temp1/1200/800",
       "imageHint": "temperature monitor"
+    },
+    {
+      "id": "enim-logo",
+      "description": "Logo ENIM Monastir",
+      "imageUrl": "https://picsum.photos/seed/enimlogo/200/200",
+      "imageHint": "ENIM logo"
     }
   ]
 }

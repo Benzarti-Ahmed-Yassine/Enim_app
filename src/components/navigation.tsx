@@ -3,7 +3,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { LayoutDashboard, History, Settings, Bell, LogOut, LogIn, User } from "lucide-react"
+import { LayoutDashboard, History, Settings, LogOut, LogIn, User } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useUser, useAuth } from "@/firebase"
 import { signOut } from "firebase/auth"
@@ -17,11 +17,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import Image from "next/image"
+import { PlaceHolderImages } from "@/lib/placeholder-images"
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/history", label: "History", icon: History },
-  { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/history", label: "Historique", icon: History },
+  { href: "/settings", label: "Paramètres", icon: Settings },
 ]
 
 export function Navigation() {
@@ -29,6 +31,8 @@ export function Navigation() {
   const router = useRouter()
   const { user } = useUser()
   const auth = useAuth()
+  
+  const enimLogo = PlaceHolderImages.find(img => img.id === 'enim-logo')
 
   const handleLogout = async () => {
     if (auth) {
@@ -40,11 +44,22 @@ export function Navigation() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-t pb-safe-area-inset-bottom md:top-0 md:bottom-auto md:border-b md:border-t-0">
       <div className="max-w-md mx-auto flex justify-around items-center h-16 md:max-w-none md:px-8 md:justify-start md:gap-8">
-        <div className="hidden md:flex items-center gap-2 mr-auto">
-          <div className="bg-primary p-2 rounded-lg">
-            <Bell className="w-5 h-5 text-white" />
+        <div className="hidden md:flex items-center gap-3 mr-auto">
+          <div className="relative w-10 h-10 overflow-hidden rounded-lg border bg-white flex items-center justify-center">
+            {enimLogo && (
+              <Image 
+                src={enimLogo.imageUrl} 
+                alt="ENIM Logo" 
+                fill 
+                className="object-contain p-1"
+                data-ai-hint={enimLogo.imageHint}
+              />
+            )}
           </div>
-          <span className="font-bold text-lg tracking-tight">TempAlert</span>
+          <div className="flex flex-col -space-y-1">
+            <span className="font-bold text-lg tracking-tight text-primary">ENIM</span>
+            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">TempAlert</span>
+          </div>
         </div>
 
         {navItems.map((item) => {
