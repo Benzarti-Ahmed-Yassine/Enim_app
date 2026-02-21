@@ -9,6 +9,9 @@ import { AuthInitializer } from '@/components/auth-initializer';
 export const metadata: Metadata = {
   title: 'TempAlert - Precision Monitoring',
   description: 'Real-time temperature monitoring and alert system',
+  icons: {
+    icon: 'https://picsum.photos/seed/flame-icon/32/32',
+  },
 };
 
 export default function RootLayout({
