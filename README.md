@@ -10,7 +10,7 @@ Système de surveillance de température haute précision avec Dashboard Cloud e
 Le dashboard est conçu pour afficher les données envoyées par vos capteurs en temps réel via Firestore.
 
 ### 1. Configuration Arduino (Exemple ESP32)
-Utilisez le code suivant pour envoyer vos données de température (via un capteur DS18B20 ou DHT22) directement à votre base de données :
+Utilisez le code suivant pour envoyer vos données de température directement à votre base de données :
 
 ```cpp
 #include <WiFi.h>
@@ -19,10 +19,14 @@ Utilisez le code suivant pour envoyer vos données de température (via un capte
 const char* ssid = "VOTRE_WIFI";
 const char* password = "VOTRE_MOT_DE_PASSE";
 
-// Identifiants de votre projet
+// --- CONFIGURATION FIREBASE ---
+// 1. Project ID: studio-1892302408-8f785
+// 2. User ID: Trouvez-le dans Console Firebase > Authentication > Users (colonne UID)
+// 3. API Key: Trouvez-la dans Console Firebase > Paramètres du projet > Clé d'API Web
+
 const String projectId = "studio-1892302408-8f785";
-const String userId = "VOTRE_USER_UID_PROPRIETAIRE"; // Trouvez-le dans la console Auth
-const String apiKey = "VOTRE_API_KEY";
+const String userId = "VOTRE_USER_UID"; // Exemple: VbFindRs3CbYF8etqhOVF6OKHDX2
+const String apiKey = "VOTRE_API_KEY";   // Exemple: AIzaSyAfe1yAsHi...
 
 void setup() {
   Serial.begin(115200);
@@ -40,20 +44,23 @@ void loop() {
     http.begin(url);
     http.addHeader("Content-Type", "application/json");
 
-    float temp = 25.5 + random(0, 50) / 10.0; // Remplacez par votre lecture capteur reelle
+    // Simulation de lecture capteur (Remplacez par votre sensor)
+    float temp = 22.0 + random(0, 100) / 10.0; 
     
+    // Format JSON pour Firestore (important: respectez la structure "fields")
     String json = "{\"fields\": {"
                   "\"ownerUserId\": {\"stringValue\": \"" + userId + "\"},"
                   "\"value\": {\"doubleValue\": " + String(temp) + "},"
                   "\"unit\": {\"stringValue\": \"Celsius\"},"
-                  "\"timestamp\": {\"stringValue\": \"2024-05-20T12:00:00Z\"}" // Generer un ISO8601 dynamique si possible
+                  "\"timestamp\": {\"stringValue\": \"2024-05-20T12:00:00Z\"}" 
                   "}}";
 
     int httpResponseCode = http.POST(json);
-    Serial.print("HTTP Code: "); Serial.println(httpResponseCode);
+    Serial.print("Valeur envoyée: "); Serial.print(temp);
+    Serial.print(" | HTTP Code: "); Serial.println(httpResponseCode);
     http.end();
   }
-  delay(10000); // Envoi toutes les 10 secondes
+  delay(10000); // Envoi toutes les 10 secondes pour le test
 }
 ```
 
