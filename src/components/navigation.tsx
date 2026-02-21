@@ -42,9 +42,10 @@ export function Navigation() {
   }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-t pb-safe-area-inset-bottom md:top-0 md:bottom-auto md:border-b md:border-t-0">
-      <div className="max-w-md mx-auto flex justify-around items-center h-16 md:max-w-none md:px-8 md:justify-start md:gap-8">
-        <div className="hidden md:flex items-center gap-3 mr-auto">
+    <>
+      {/* Header fixe en haut pour le Logo et la Cloche */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b h-16 flex items-center px-4 md:px-8">
+        <div className="flex items-center gap-3 mr-auto">
           <div className="relative w-10 h-10 overflow-hidden rounded-lg border bg-white flex items-center justify-center">
             {enimLogo && (
               <Image 
@@ -62,27 +63,11 @@ export function Navigation() {
           </div>
         </div>
 
-        {navItems.map((item) => {
-          const isActive = pathname === item.href
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex flex-col items-center justify-center gap-1 min-w-[64px] transition-colors",
-                isActive ? "text-primary" : "text-muted-foreground hover:text-primary"
-              )}
-            >
-              <item.icon className={cn("w-6 h-6", isActive && "stroke-[2.5px]")} />
-              <span className="text-[10px] font-medium uppercase tracking-wider">{item.label}</span>
-            </Link>
-          )
-        })}
-
-        <div className="flex items-center gap-2 md:ml-4">
-          <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:text-primary hidden md:flex">
+        <div className="flex items-center gap-2">
+          {/* La cloche de notification demandée */}
+          <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:text-primary">
             <Bell className="w-5 h-5" />
-            <span className="absolute top-2 right-2 w-2 h-2 bg-accent rounded-full border-2 border-background"></span>
+            <span className="absolute top-2 right-2 w-2 h-2 bg-accent rounded-full border-2 border-white"></span>
           </Button>
 
           {user ? (
@@ -121,7 +106,29 @@ export function Navigation() {
             </Link>
           )}
         </div>
-      </div>
-    </nav>
+      </header>
+
+      {/* Barre de navigation (Bas sur mobile, intégrée ou invisible sur desktop si souhaité) */}
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-lg border-t pb-safe-area-inset-bottom md:top-0 md:bottom-auto md:bg-transparent md:border-none md:h-16 md:flex md:items-center md:justify-center md:pointer-events-none">
+        <div className="max-w-md mx-auto flex justify-around items-center h-16 md:max-w-none md:gap-8 md:pointer-events-auto">
+          {navItems.map((item) => {
+            const isActive = pathname === item.href
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex flex-col items-center justify-center gap-1 min-w-[64px] transition-colors md:flex-row md:px-4 md:py-2 md:rounded-full md:hover:bg-primary/5",
+                  isActive ? "text-primary md:bg-primary/10" : "text-muted-foreground hover:text-primary"
+                )}
+              >
+                <item.icon className={cn("w-6 h-6 md:w-5 md:h-5", isActive && "stroke-[2.5px]")} />
+                <span className="text-[10px] font-medium uppercase tracking-wider md:text-sm md:normal-case md:tracking-normal">{item.label}</span>
+              </Link>
+            )
+          })}
+        </div>
+      </nav>
+    </>
   )
 }
