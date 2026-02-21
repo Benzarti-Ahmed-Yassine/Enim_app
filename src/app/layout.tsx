@@ -7,10 +7,10 @@ import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { AuthInitializer } from '@/components/auth-initializer';
 
 export const metadata: Metadata = {
-  title: 'TempAlert - Precision Monitoring',
-  description: 'Real-time temperature monitoring and alert system',
+  title: 'TempAlert - ENIM Monastir',
+  description: 'Système de surveillance de température en temps réel - ENIM',
   icons: {
-    icon: 'https://picsum.photos/seed/flame-icon/32/32',
+    icon: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTAA9PUorWwTxECMDSjnBOt3vG3hxX84Qu05A&s',
   },
 };
 
@@ -20,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="fr">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
