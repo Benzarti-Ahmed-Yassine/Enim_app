@@ -26,8 +26,7 @@ const char* password = "VOTRE_MOT_DE_PASSE";
 
 const String projectId = "studio-1892302408-8f785";
 const String userId = "VOTRE_USER_UID"; // Exemple: VbFindRs3CbYF8etqhOVF6OKHDX2
-const String apiKey = "VOTRE_API_KEY";   // Exemple: AIzaSyAfe1yAsHi...
-
+const String apiKey = "AIzaSyAfe1yAsHi5gHCxDPPk0tJyP-Y5D7KBF28";   
 void setup() {
   Serial.begin(115200);
   WiFi.begin(ssid, password);
