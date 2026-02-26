@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -58,12 +57,12 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-[80vh] px-4">
-      <Card className="w-full max-w-md border-none shadow-2xl bg-white/80 backdrop-blur-sm">
-        <CardHeader className="text-center space-y-2">
-          <div className="mx-auto bg-white w-24 h-24 rounded-2xl flex items-center justify-center mb-2 shadow-lg border p-2">
+    <div className="flex items-center justify-center min-h-[80vh] px-4 overflow-hidden">
+      <Card className="w-full max-w-md border-none shadow-2xl bg-white/80 backdrop-blur-sm animate-in fade-in slide-in-from-bottom-8 duration-1000">
+        <CardHeader className="text-center space-y-4">
+          <div className="mx-auto w-32 h-32 flex items-center justify-center overflow-hidden">
             {enimLogo && (
-              <div className="relative w-full h-full">
+              <div className="relative w-full h-full animate-slide-reveal">
                 <Image 
                   src={enimLogo.imageUrl} 
                   alt="ENIM Logo" 
@@ -74,10 +73,13 @@ export default function LoginPage() {
               </div>
             )}
           </div>
-          <CardTitle className="text-2xl font-bold text-primary tracking-tight">ENIM Monastir</CardTitle>
-          <CardDescription className="flex items-center justify-center gap-2 text-amber-600 font-medium bg-amber-50 py-1 px-2 rounded-md border border-amber-100">
+          <div className="space-y-1">
+            <CardTitle className="text-2xl font-bold text-primary tracking-tight">ENIM Monastir</CardTitle>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-[0.2em]">Excellence Académique</p>
+          </div>
+          <CardDescription className="flex items-center justify-center gap-2 text-amber-600 font-medium bg-amber-50 py-1.5 px-3 rounded-md border border-amber-100">
             <AlertCircle className="w-4 h-4" />
-            Accès réservé au personnel autorisé
+            Accès réservé au personnel
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -90,7 +92,7 @@ export default function LoginPage() {
                   id="login-email" 
                   type="email" 
                   placeholder="nom.prenom@enim.tn" 
-                  className="pl-10 h-11" 
+                  className="pl-10 h-11 border-slate-200 focus:border-primary" 
                   value={email} 
                   onChange={(e) => setEmail(e.target.value)} 
                   required 
@@ -104,25 +106,24 @@ export default function LoginPage() {
                 <Input 
                   id="login-password" 
                   type="password" 
-                  className="pl-10 h-11" 
+                  className="pl-10 h-11 border-slate-200 focus:border-primary" 
                   value={password} 
                   onChange={(e) => setPassword(e.target.value)} 
                   required 
                 />
               </div>
             </div>
-            <Button type="submit" className="w-full h-11 text-base font-semibold shadow-md" disabled={isLoading}>
+            <Button type="submit" className="w-full h-11 text-base font-semibold shadow-lg hover:shadow-primary/20 transition-all" disabled={isLoading}>
               {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <LogIn className="w-5 h-5 mr-2" />}
               Se Connecter
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="flex flex-col gap-2 justify-center text-[11px] text-muted-foreground text-center border-t pt-4">
-          <p className="font-semibold text-primary/60 italic">Aucune inscription publique autorisée.</p>
-          <p>Les comptes sont créés exclusivement par l'Administrateur Système de l'ENIM.</p>
-          <div className="mt-2 pt-2 border-t w-full flex justify-between px-4 opacity-40 font-mono">
-            <span>SECURE ENIM GATEWAY</span>
-            <span>V2.5.0</span>
+        <CardFooter className="flex flex-col gap-2 justify-center text-[10px] text-muted-foreground text-center border-t pt-6 pb-4">
+          <p className="font-semibold text-primary/70">Système de Surveillance Haute Précision</p>
+          <div className="mt-2 pt-2 border-t w-full flex justify-between px-2 opacity-30 font-mono italic">
+            <span>INSTITUTIONAL GATEWAY</span>
+            <span>v2.6.1</span>
           </div>
         </CardFooter>
       </Card>

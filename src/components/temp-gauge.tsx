@@ -5,7 +5,6 @@ import { Thermometer, Loader2, AlertTriangle, Send, Cpu } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useFirestore, useUser, useDoc, useCollection, useMemoFirebase } from "@/firebase"
 import { doc, collection, query, orderBy, limit } from "firebase/firestore"
-import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates"
 import { sendAlertEmail } from "@/ai/flows/send-alert-email"
 
 export function TempGauge() {
@@ -20,7 +19,7 @@ export function TempGauge() {
 
   const { data: settings } = useDoc(settingsRef)
   
-  // Requête pour écouter la toute dernière valeur enregistrée dans Firestore (Arduino ou Web)
+  // Requête STRICTE pour écouter la toute dernière valeur réelle enregistrée dans Firestore
   const latestQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null
     return query(
@@ -37,7 +36,7 @@ export function TempGauge() {
   
   const threshold = settings?.temperatureThreshold || 30
   
-  // Valeur actuelle : on prend celle de Firestore, sinon simulation si aucune donnée
+  // AUCUNE donnée aléatoire. Si Firestore est vide, on attend le capteur.
   const currentTemp = latestData?.[0]?.value ?? null
   const isHigh = currentTemp !== null && currentTemp > threshold
 
@@ -92,7 +91,7 @@ export function TempGauge() {
 
   return (
     <div className="flex flex-col items-center gap-6 py-8">
-      <div className={`w-64 h-64 rounded-full border-8 flex flex-col items-center justify-center relative bg-card transition-all duration-700 ${isHigh ? 'border-accent shadow-[0_0_50px_rgba(255,119,41,0.3)] scale-105 bg-accent/5' : 'border-primary shadow-sm'}`}>
+      <div className={`w-64 h-64 rounded-full border-8 flex flex-col items-center justify-center relative bg-card transition-all duration-1000 ${isHigh ? 'border-accent shadow-[0_0_50px_rgba(255,119,41,0.3)] scale-105 bg-accent/5' : 'border-primary shadow-sm'}`}>
         <Thermometer className={`w-8 h-8 mb-2 ${isHigh ? 'text-accent' : 'text-primary'}`} />
         
         {currentTemp !== null ? (
@@ -103,9 +102,10 @@ export function TempGauge() {
             <span className="text-sm font-medium text-muted-foreground">Celsius</span>
           </>
         ) : (
-          <div className="text-center px-4">
+          <div className="text-center px-4 animate-pulse">
             <Cpu className="w-10 h-10 mx-auto text-muted-foreground/30 mb-2" />
-            <p className="text-xs text-muted-foreground italic">En attente de données du capteur Arduino...</p>
+            <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">Lien Hardware Inactif</p>
+            <p className="text-[9px] text-muted-foreground/60 italic mt-1">En attente de transmission Firestore...</p>
           </div>
         )}
         
@@ -126,12 +126,12 @@ export function TempGauge() {
       
       <div className="text-center space-y-2">
         <div className="flex items-center justify-center gap-2">
-           <div className={`w-2 h-2 rounded-full ${currentTemp !== null ? 'bg-green-500 animate-pulse' : 'bg-slate-300'}`} />
-           <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-             {currentTemp !== null ? 'Hardware Live Link' : 'Capteur Déconnecté'}
+           <div className={`w-2.5 h-2.5 rounded-full ${currentTemp !== null ? 'bg-green-500 animate-pulse' : 'bg-slate-300'}`} />
+           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+             {currentTemp !== null ? 'Flux Réel Connecté' : 'Hors Ligne'}
            </p>
         </div>
-        <p className="text-sm font-medium">Seuil de sécurité : <span className="text-accent font-bold">{threshold.toFixed(1)}°C</span></p>
+        <p className="text-sm font-medium text-slate-600">Seuil de sécurité : <span className="text-accent font-bold">{threshold.toFixed(1)}°C</span></p>
       </div>
     </div>
   )

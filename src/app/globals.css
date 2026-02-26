@@ -63,6 +63,24 @@
   }
 }
 
+/* Animation de révélation "Sliding Doors" */
+@keyframes slideReveal {
+  0% {
+    clip-path: inset(100% 0 0 0);
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-reveal {
+  animation: slideReveal 1.2s cubic-bezier(0.77, 0, 0.175, 1) forwards;
+}
+
 .temp-gauge-gradient {
   background: conic-gradient(from 180deg at 50% 50%, #2962FF 0deg, #FF7729 180deg, #2962FF 360deg);
 }
