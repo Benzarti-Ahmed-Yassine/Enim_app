@@ -3,13 +3,19 @@ import { TempGauge } from "@/components/temp-gauge"
 import { TempChart } from "@/components/temp-chart"
 import { Card, CardContent } from "@/components/ui/card"
 import { Activity, ShieldCheck, Zap } from "lucide-react"
+import { MusicPlayer } from "@/components/music-player"
 
 export default function Dashboard() {
   return (
     <div className="space-y-6">
-      <header className="space-y-1">
-        <h1 className="text-3xl font-bold font-headline tracking-tight text-primary">Status Overview</h1>
-        <p className="text-muted-foreground">Live precision data from your connected sensors.</p>
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold font-headline tracking-tight text-primary">Status Overview</h1>
+          <p className="text-muted-foreground">Live precision data from your connected sensors.</p>
+        </div>
+        <div className="w-full md:w-64">
+          <MusicPlayer />
+        </div>
       </header>
 
       <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
