@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -9,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth, useUser } from '@/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import { LogIn, Loader2, Mail, Lock, AlertCircle } from 'lucide-react';
+import { LogIn, Loader2, Mail, Lock, ShieldCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -23,13 +22,16 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showDoors, setShowDoors] = useState(true);
   
   const enimLogo = PlaceHolderImages.find(img => img.id === 'enim-logo');
 
   useEffect(() => {
+    const timer = setTimeout(() => setShowDoors(false), 2000);
     if (user && !isUserLoading) {
       router.push('/');
     }
+    return () => clearTimeout(timer);
   }, [user, isUserLoading, router]);
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -38,32 +40,35 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      toast({ title: "Connexion réussie", description: "Accès au tableau de bord en cours..." });
+      toast({ title: "Accès Autorisé", description: "Chargement de votre espace sécurisé..." });
     } catch (error: any) {
       toast({ 
         variant: "destructive", 
-        title: "Échec de connexion", 
-        description: "Identifiants incorrects ou compte inexistant." 
+        title: "Échec d'Authentification", 
+        description: "Identifiants institutionnels non reconnus." 
       });
       setIsLoading(false);
     }
   };
 
-  if (user && !isUserLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[80vh]">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
   return (
-    <div className="flex items-center justify-center min-h-[80vh] px-4 overflow-hidden bg-slate-50">
-      <Card className="w-full max-w-md border-none shadow-2xl bg-white animate-in fade-in slide-in-from-bottom-8 duration-700">
-        <CardHeader className="text-center space-y-6 pt-10">
-          <div className="mx-auto w-32 h-32 flex items-center justify-center">
-            {enimLogo && (
-              <div className="relative w-full h-full animate-slide-reveal">
+    <div className="relative min-h-[85vh] flex items-center justify-center overflow-hidden">
+      {showDoors && (
+        <>
+          <div className="door-overlay door-left animate-slide-door-left flex flex-col items-end pr-8">
+             <h1 className="text-white text-4xl font-bold tracking-tighter">E N I</h1>
+          </div>
+          <div className="door-overlay door-right animate-slide-door-right flex flex-col items-start pl-8">
+             <h1 className="text-white text-4xl font-bold tracking-tighter">M</h1>
+          </div>
+        </>
+      )}
+
+      <div className="w-full max-w-md animate-fade-in-content z-10 px-4">
+        <Card className="border-none shadow-2xl bg-white/90 backdrop-blur-sm">
+          <CardHeader className="text-center space-y-4 pt-8">
+            <div className="mx-auto w-24 h-24 relative">
+              {enimLogo && (
                 <Image 
                   src={enimLogo.imageUrl} 
                   alt="ENIM Logo" 
@@ -71,62 +76,59 @@ export default function LoginPage() {
                   className="object-contain"
                   priority
                 />
-              </div>
-            )}
-          </div>
-          <div className="space-y-2">
-            <h2 className="text-2xl font-bold tracking-tight text-slate-900">Portail Institutionnel</h2>
-            <CardDescription className="flex items-center justify-center gap-2 text-amber-600 font-medium bg-amber-50 py-1.5 px-3 rounded-md border border-amber-100 max-w-fit mx-auto">
-              <AlertCircle className="w-4 h-4" />
-              Accès réservé au personnel
-            </CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSignIn} className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="login-email">Identifiant Email</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                <Input 
-                  id="login-email" 
-                  type="email" 
-                  placeholder="nom.prenom@enim.tn" 
-                  className="pl-10 h-11 border-slate-200 focus:ring-primary/20" 
-                  value={email} 
-                  onChange={(e) => setEmail(e.target.value)} 
-                  required 
-                />
-              </div>
+              )}
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="login-password">Mot de passe</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                <Input 
-                  id="login-password" 
-                  type="password" 
-                  className="pl-10 h-11 border-slate-200 focus:ring-primary/20" 
-                  value={password} 
-                  onChange={(e) => setPassword(e.target.value)} 
-                  required 
-                />
-              </div>
+            <div className="space-y-1">
+              <h2 className="text-2xl font-bold text-slate-900">Portail Académique</h2>
+              <CardDescription className="text-primary font-semibold flex items-center justify-center gap-2">
+                <ShieldCheck className="w-4 h-4" />
+                Accès Sécurisé ENIM
+              </CardDescription>
             </div>
-            <Button type="submit" className="w-full h-11 text-base font-semibold shadow-lg hover:shadow-primary/20 transition-all" disabled={isLoading}>
-              {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <LogIn className="w-5 h-5 mr-2" />}
-              Se Connecter
-            </Button>
-          </form>
-        </CardContent>
-        <CardFooter className="flex flex-col gap-2 justify-center text-[10px] text-muted-foreground text-center border-t pt-6 pb-4 bg-slate-50/50 rounded-b-lg">
-          <p className="font-semibold text-primary/70 uppercase tracking-widest">ENIM - TempAlert Precision</p>
-          <div className="mt-2 pt-2 border-t w-full flex justify-between px-2 opacity-30 font-mono italic">
-            <span>SECURE GATEWAY</span>
-            <span>v2.8.0</span>
-          </div>
-        </CardFooter>
-      </Card>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSignIn} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email Institutionnel</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    placeholder="nom.prenom@enim.tn" 
+                    className="pl-10 h-11" 
+                    value={email} 
+                    onChange={(e) => setEmail(e.target.value)} 
+                    required 
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Mot de passe</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                  <Input 
+                    id="password" 
+                    type="password" 
+                    className="pl-10 h-11" 
+                    value={password} 
+                    onChange={(e) => setPassword(e.target.value)} 
+                    required 
+                  />
+                </div>
+              </div>
+              <Button type="submit" className="w-full h-11 text-base font-bold transition-all hover:scale-[1.02]" disabled={isLoading}>
+                {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <LogIn className="w-5 h-5 mr-2" />}
+                S'identifier
+              </Button>
+            </form>
+          </CardContent>
+          <CardFooter className="flex flex-col gap-1 text-[10px] text-muted-foreground text-center border-t py-4 bg-slate-50/50 rounded-b-lg">
+            <p className="font-bold uppercase tracking-widest text-primary/80">ENIM Monastir - TempAlert</p>
+            <p>Système de Surveillance Haute Précision v3.0</p>
+          </CardFooter>
+        </Card>
+      </div>
     </div>
   );
 }

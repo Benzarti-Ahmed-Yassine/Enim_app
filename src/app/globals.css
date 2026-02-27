@@ -1,11 +1,10 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 224 100% 96%;
+    --background: 224 100% 98%;
     --foreground: 224 60% 10%;
     --card: 0 0% 100%;
     --card-foreground: 224 60% 10%;
@@ -24,12 +23,7 @@
     --border: 224 30% 85%;
     --input: 224 30% 85%;
     --ring: 224 100% 58%;
-    --radius: 1rem;
-    --chart-1: 224 100% 58%;
-    --chart-2: 22 100% 58%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    --radius: 0.75rem;
   }
 
   .dark {
@@ -64,24 +58,51 @@
   }
 }
 
-/* Animation "Sliding Doors" - Professionnelle et Institutionnelle */
-@keyframes slideReveal {
-  0% {
-    clip-path: inset(0 0 100% 0);
-    opacity: 0;
-    transform: translateY(15px);
-  }
-  100% {
-    clip-path: inset(0 0 0 0);
-    opacity: 1;
-    transform: translateY(0);
-  }
+@keyframes slideDoorLeft {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
 }
 
-.animate-slide-reveal {
-  animation: slideReveal 1.4s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+@keyframes slideDoorRight {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(100%); }
 }
 
-.temp-gauge-gradient {
-  background: conic-gradient(from 180deg at 50% 50%, #2962FF 0deg, #FF7729 180deg, #2962FF 360deg);
+@keyframes fadeInContent {
+  0% { opacity: 0; transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.animate-slide-door-left {
+  animation: slideDoorLeft 1.2s cubic-bezier(0.77, 0, 0.175, 1) forwards;
+}
+
+.animate-slide-door-right {
+  animation: slideDoorRight 1.2s cubic-bezier(0.77, 0, 0.175, 1) forwards;
+}
+
+.animate-fade-in-content {
+  animation: fadeInContent 1s ease-out 0.8s both;
+}
+
+.door-overlay {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  background: hsl(var(--primary));
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.door-left {
+  left: 0;
+  border-right: 1px solid rgba(255,255,255,0.1);
+}
+
+.door-right {
+  right: 0;
+  border-left: 1px solid rgba(255,255,255,0.1);
 }

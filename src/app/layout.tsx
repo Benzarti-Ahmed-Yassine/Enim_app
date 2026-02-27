@@ -1,4 +1,3 @@
-
 import type {Metadata} from 'next';
 import './globals.css';
 import { Navigation } from '@/components/navigation';
@@ -30,7 +29,7 @@ export default function RootLayout({
         <FirebaseClientProvider>
           <AuthInitializer />
           <Navigation />
-          <main className="flex-1 pb-24 pt-20 px-4 max-w-5xl mx-auto w-full">
+          <main className="flex-1 pb-24 pt-28 px-4 max-w-5xl mx-auto w-full">
             {children}
           </main>
           <Toaster />
