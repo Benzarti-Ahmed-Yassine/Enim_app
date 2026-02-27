@@ -9,15 +9,21 @@ Système de surveillance de température haute précision avec Dashboard Cloud e
 
 ## 🤖 Activation de l'IA (Genkit)
 Ce projet utilise **Google AI Studio (Gemini)**. 
-- **Coût** : L'utilisation est gratuite via le "Free Tier" de Google (pas de charge monétaire).
-- **Configuration** : Pour que le système d'alerte IA fonctionne après le déploiement (sur Render, Vercel ou App Hosting) :
-  1. Générez une clé API sur [Google AI Studio](https://aistudio.google.com/).
-  2. Ajoutez une variable d'environnement dans votre plateforme de déploiement :
-     - **Nom** : `GOOGLE_GENAI_API_KEY`
-     - **Valeur** : *Votre_Clé_API*
+
+### En Développement (Local) :
+1. Créez un fichier `.env` à la racine du projet.
+2. Ajoutez la ligne suivante : `GOOGLE_GENAI_API_KEY=votre_cle_ici`.
+
+### En Production (Render / Vercel) :
+**Ne mettez jamais votre clé directement dans le code.**
+1. Allez dans les paramètres de votre service sur Render.
+2. Allez dans l'onglet **Environment**.
+3. Ajoutez une variable :
+   - **Nom** : `GOOGLE_GENAI_API_KEY`
+   - **Valeur** : *Votre_Clé_API_AI_Studio*
 
 ## 🔌 Intégration Hardware (Arduino / ESP32)
-Le dashboard affiche les données envoyées par vos capteurs en temps réel via Firestore. **Aucune donnée n'est générée aléatoirement par l'application.**
+Le dashboard affiche les données envoyées par vos capteurs en temps réel via Firestore.
 
 ### 1. Configuration Arduino (Exemple ESP32)
 Utilisez le code suivant pour envoyer vos données :
@@ -43,7 +49,6 @@ void setup() {
 void loop() {
   if (WiFi.status() == WL_CONNECTED) {
     HTTPClient http;
-    // URL pointant vers votre collection Firestore spécifique
     String url = "https://firestore.googleapis.com/v1/projects/" + projectId + "/databases/(default)/documents/users/" + userId + "/temperatureMeasurements?key=" + apiKey;
     http.begin(url);
     http.addHeader("Content-Type", "application/json");
@@ -62,8 +67,3 @@ void loop() {
   delay(10000); 
 }
 ```
-
-## 🚀 Déploiement
-1. Poussez votre code sur GitHub.
-2. Connectez votre dépôt à Render ou Firebase App Hosting.
-3. Configurez les variables d'environnement (Firebase Config + Clé IA).
