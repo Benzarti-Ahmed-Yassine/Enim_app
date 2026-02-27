@@ -8,17 +8,19 @@ Système de surveillance de température haute précision avec Dashboard Cloud e
 - **Gestion Admin** : Seul l'administrateur peut créer des accès via la [Console Firebase > Authentication](https://console.firebase.google.com/).
 
 ## 🤖 Activation de l'IA (Genkit)
-Pour que le système d'alerte IA (Gemini) fonctionne après le déploiement (sur Render, Vercel ou App Hosting) :
-1. Générez une clé API sur [Google AI Studio](https://aistudio.google.com/).
-2. Ajoutez une variable d'environnement dans votre plateforme de déploiement :
-   - **Nom** : `GOOGLE_GENAI_API_KEY`
-   - **Valeur** : *Votre_Clé_API*
+Ce projet utilise **Google AI Studio (Gemini)**. 
+- **Coût** : L'utilisation est gratuite via le "Free Tier" de Google (pas de charge monétaire).
+- **Configuration** : Pour que le système d'alerte IA fonctionne après le déploiement (sur Render, Vercel ou App Hosting) :
+  1. Générez une clé API sur [Google AI Studio](https://aistudio.google.com/).
+  2. Ajoutez une variable d'environnement dans votre plateforme de déploiement :
+     - **Nom** : `GOOGLE_GENAI_API_KEY`
+     - **Valeur** : *Votre_Clé_API*
 
 ## 🔌 Intégration Hardware (Arduino / ESP32)
-Le dashboard est conçu pour afficher les données envoyées par vos capteurs en temps réel via Firestore.
+Le dashboard affiche les données envoyées par vos capteurs en temps réel via Firestore. **Aucune donnée n'est générée aléatoirement par l'application.**
 
 ### 1. Configuration Arduino (Exemple ESP32)
-Utilisez le code suivant pour envoyer vos données de température directement à votre base de données :
+Utilisez le code suivant pour envoyer vos données :
 
 ```cpp
 #include <WiFi.h>
@@ -41,6 +43,7 @@ void setup() {
 void loop() {
   if (WiFi.status() == WL_CONNECTED) {
     HTTPClient http;
+    // URL pointant vers votre collection Firestore spécifique
     String url = "https://firestore.googleapis.com/v1/projects/" + projectId + "/databases/(default)/documents/users/" + userId + "/temperatureMeasurements?key=" + apiKey;
     http.begin(url);
     http.addHeader("Content-Type", "application/json");

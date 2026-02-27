@@ -1,7 +1,8 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -57,10 +58,10 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-[80vh] px-4 overflow-hidden">
-      <Card className="w-full max-w-md border-none shadow-2xl bg-white/80 backdrop-blur-sm animate-in fade-in slide-in-from-bottom-8 duration-1000">
-        <CardHeader className="text-center space-y-4">
-          <div className="mx-auto w-32 h-32 flex items-center justify-center overflow-hidden">
+    <div className="flex items-center justify-center min-h-[80vh] px-4 overflow-hidden bg-slate-50">
+      <Card className="w-full max-w-md border-none shadow-2xl bg-white animate-in fade-in slide-in-from-bottom-8 duration-700">
+        <CardHeader className="text-center space-y-6 pt-10">
+          <div className="mx-auto w-32 h-32 flex items-center justify-center">
             {enimLogo && (
               <div className="relative w-full h-full animate-slide-reveal">
                 <Image 
@@ -68,20 +69,21 @@ export default function LoginPage() {
                   alt="ENIM Logo" 
                   fill 
                   className="object-contain"
-                  data-ai-hint={enimLogo.imageHint}
+                  priority
                 />
               </div>
             )}
           </div>
-          <div className="space-y-1">
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold tracking-tight text-slate-900">Portail Institutionnel</h2>
+            <CardDescription className="flex items-center justify-center gap-2 text-amber-600 font-medium bg-amber-50 py-1.5 px-3 rounded-md border border-amber-100 max-w-fit mx-auto">
+              <AlertCircle className="w-4 h-4" />
+              Accès réservé au personnel
+            </CardDescription>
           </div>
-          <CardDescription className="flex items-center justify-center gap-2 text-amber-600 font-medium bg-amber-50 py-1.5 px-3 rounded-md border border-amber-100">
-            <AlertCircle className="w-4 h-4" />
-            Accès réservé au personnel
-          </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSignIn} className="space-y-4">
+          <form onSubmit={handleSignIn} className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="login-email">Identifiant Email</Label>
               <div className="relative">
@@ -90,7 +92,7 @@ export default function LoginPage() {
                   id="login-email" 
                   type="email" 
                   placeholder="nom.prenom@enim.tn" 
-                  className="pl-10 h-11 border-slate-200 focus:border-primary" 
+                  className="pl-10 h-11 border-slate-200 focus:ring-primary/20" 
                   value={email} 
                   onChange={(e) => setEmail(e.target.value)} 
                   required 
@@ -104,7 +106,7 @@ export default function LoginPage() {
                 <Input 
                   id="login-password" 
                   type="password" 
-                  className="pl-10 h-11 border-slate-200 focus:border-primary" 
+                  className="pl-10 h-11 border-slate-200 focus:ring-primary/20" 
                   value={password} 
                   onChange={(e) => setPassword(e.target.value)} 
                   required 
@@ -117,11 +119,11 @@ export default function LoginPage() {
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="flex flex-col gap-2 justify-center text-[10px] text-muted-foreground text-center border-t pt-6 pb-4">
-          <p className="font-semibold text-primary/70">Système de Surveillance Haute Précision</p>
+        <CardFooter className="flex flex-col gap-2 justify-center text-[10px] text-muted-foreground text-center border-t pt-6 pb-4 bg-slate-50/50 rounded-b-lg">
+          <p className="font-semibold text-primary/70 uppercase tracking-widest">ENIM - TempAlert Precision</p>
           <div className="mt-2 pt-2 border-t w-full flex justify-between px-2 opacity-30 font-mono italic">
-            <span>INSTITUTIONAL GATEWAY</span>
-            <span>v2.6.1</span>
+            <span>SECURE GATEWAY</span>
+            <span>v2.8.0</span>
           </div>
         </CardFooter>
       </Card>

@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -63,12 +64,12 @@
   }
 }
 
-/* Animation de révélation "Sliding Doors" */
+/* Animation "Sliding Doors" - Professionnelle et Institutionnelle */
 @keyframes slideReveal {
   0% {
-    clip-path: inset(100% 0 0 0);
+    clip-path: inset(0 0 100% 0);
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(15px);
   }
   100% {
     clip-path: inset(0 0 0 0);
@@ -78,7 +79,7 @@
 }
 
 .animate-slide-reveal {
-  animation: slideReveal 1.2s cubic-bezier(0.77, 0, 0.175, 1) forwards;
+  animation: slideReveal 1.4s cubic-bezier(0.19, 1, 0.22, 1) forwards;
 }
 
 .temp-gauge-gradient {
