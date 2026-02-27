@@ -4,13 +4,15 @@ import { useState, useEffect } from "react";
 import { TempGauge } from "@/components/temp-gauge";
 import { TempChart } from "@/components/temp-chart";
 import { Card, CardContent } from "@/components/ui/card";
-import { ShieldCheck, Zap, Activity, Waves, Loader2 } from "lucide-react";
+import { ShieldCheck, Zap, Activity, Waves, Loader2, Database } from "lucide-react";
+import { useUser } from "@/firebase";
 
 /**
- * Tableau de Bord Principal - Version Institutionnelle ENIM
+ * Tableau de Bord Principal - Version Institutionnelle ENIM (Production)
  */
 export default function Dashboard() {
   const [isMounted, setIsMounted] = useState(false);
+  const { user } = useUser();
 
   useEffect(() => {
     setIsMounted(true);
@@ -36,13 +38,17 @@ export default function Dashboard() {
           </div>
           <p className="text-muted-foreground font-medium">Surveillance thermique des laboratoires en temps réel.</p>
         </div>
-        <div className="flex items-center gap-4 bg-white p-2 rounded-xl shadow-sm border">
+        
+        <div className="flex items-center gap-4 bg-white p-3 rounded-xl shadow-sm border border-slate-100">
            <div className="flex flex-col items-end">
-              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Connectivité</span>
-              <span className="text-sm font-bold text-green-600">Serveur Actif</span>
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Base de Données</span>
+              <span className="text-sm font-bold text-blue-600 flex items-center gap-1">
+                <Database className="w-3 h-3" />
+                Firestore Connecté
+              </span>
            </div>
-           <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-              <Zap className="w-5 h-5 text-green-600 fill-green-600" />
+           <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
+              <Zap className="w-5 h-5 text-blue-600 fill-blue-600" />
            </div>
         </div>
       </header>
@@ -71,7 +77,7 @@ export default function Dashboard() {
                 <div>
                   <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Sécurité</p>
                   <p className="text-lg font-bold text-slate-900 leading-tight">Canal Chiffré TLS</p>
-                  <p className="text-[10px] text-muted-foreground mt-1">Protection des données ENIM</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">Données sécurisées ENIM</p>
                 </div>
               </CardContent>
             </Card>
@@ -83,8 +89,8 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Analyse IA</p>
-                  <p className="text-lg font-bold text-slate-900 leading-tight">Gemini 2.5 Prêt</p>
-                  <p className="text-[10px] text-muted-foreground mt-1">Génération d'alertes intelligentes</p>
+                  <p className="text-lg font-bold text-slate-900 leading-tight">Gemini Actif</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">Alertes intelligentes prêtes</p>
                 </div>
               </CardContent>
             </Card>

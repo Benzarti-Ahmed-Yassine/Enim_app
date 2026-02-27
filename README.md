@@ -2,27 +2,33 @@
 
 Système de surveillance de température haute précision avec Dashboard Cloud et Alertes IA.
 
-## 🔒 Sécurité & Bonnes Pratiques
-**Pourquoi utilisons-nous un fichier `.env` ?**
-Mettre des clés API directement dans le code source (Hardcoding) présente des risques majeurs :
-1. **Fuite de données** : Vos clés sont visibles par toute personne accédant au code ou via les historiques Git.
-2. **Abus de ressources** : Des robots peuvent voler vos clés pour utiliser vos quotas Gemini ou Firebase à vos frais.
-3. **Rigidité** : Impossible de différencier les clés de Test et de Production sans modifier le code.
+## 🚀 Guide de Déploiement Rapide
 
-**Règle d'or :** Ne partagez jamais votre fichier `.env` et assurez-vous qu'il est listé dans votre `.gitignore`.
+L'application est configurée pour fonctionner sur **Render.com** ou **Vercel**.
 
-## 🚀 Configuration sur Render (Production)
-Pour que l'application fonctionne une fois déployée, configurez ces variables dans l'onglet **Environment** de votre Web Service sur Render :
+### 1. Préparation du Code
+- Assurez-vous que votre dépôt GitHub est à jour.
+- Ne poussez **JAMAIS** votre fichier `.env` sur GitHub (il est déjà dans le `.gitignore`).
 
-| Catégorie | Clé (Key) | Description |
-| :--- | :--- | :--- |
-| **Firebase** | `NEXT_PUBLIC_FIREBASE_...` | Les 6 clés de votre projet Firebase |
-| **IA** | `GOOGLE_GENAI_API_KEY` | Votre clé Gemini (AI Studio) |
-| **Email** | `EMAIL_USER` | Votre adresse Gmail pour les alertes |
-| **Email** | `EMAIL_PASS` | Votre mot de passe d'application Google |
+### 2. Configuration sur Render (Onglet Environment)
+Ajoutez les variables suivantes dans le tableau de bord de votre service :
 
-## 🤖 Activation de l'IA (Genkit)
-L'IA est utilisée pour rédiger les e-mails d'alerte de manière professionnelle. Obtenez votre clé sur : [https://aistudio.google.com/](https://aistudio.google.com/)
+| Variable | Source / Valeur |
+| :--- | :--- |
+| `NEXT_PUBLIC_FIREBASE_API_KEY` | Console Firebase |
+| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | Console Firebase |
+| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | Console Firebase |
+| `GOOGLE_GENAI_API_KEY` | [AI Studio](https://aistudio.google.com/) |
+| `EMAIL_USER` | Votre Gmail |
+| `EMAIL_PASS` | Mot de passe d'application Google |
 
-## 🔌 Intégration Hardware (Arduino / ESP32)
-Le dashboard affiche les données envoyées par vos capteurs en temps réel via Firestore. Assurez-vous que votre code Arduino pointe vers la collection `/users/{userId}/temperatureMeasurements/`.
+### 3. Commandes de Build
+Sur Render, utilisez ces paramètres :
+- **Build Command**: `npm run build`
+- **Start Command**: `npm run start`
+
+## 🛡️ Sécurité Institutionnelle
+L'application utilise le mode **Strict Environment**. Si une clé est manquante en production, le système se verrouille automatiquement pour protéger l'infrastructure de l'ENIM.
+
+## 🤖 Intelligence Artificielle
+Le moteur **Gemini 2.5 Flash** analyse les dépassements de seuils pour générer des rapports d'incidents formels envoyés par e-mail aux responsables de laboratoire.
