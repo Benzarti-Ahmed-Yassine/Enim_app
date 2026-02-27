@@ -1,7 +1,7 @@
-
 'use server';
 /**
  * @fileOverview Flow Genkit pour l'envoi d'e-mails d'alerte.
+ * Utilise désormais des variables d'environnement pour plus de sécurité.
  */
 
 import { ai } from '@/ai/genkit';
@@ -25,14 +25,15 @@ const SendAlertEmailOutputSchema = z.object({
 
 export type SendAlertEmailOutput = z.infer<typeof SendAlertEmailOutputSchema>;
 
+// Configuration du transporteur utilisant des variables d'environnement
 const transporter = nodemailer.createTransport({
   service: "gmail",
   host: "smtp.gmail.com",
   port: 587,
   secure: false,
   auth: {
-    user: "benzartiahmedyassine@gmail.com",
-    pass: "ozhh jdsc ecyj tfsx"
+    user: process.env.EMAIL_USER || "benzartiahmedyassine@gmail.com",
+    pass: process.env.EMAIL_PASS || "ozhh jdsc ecyj tfsx"
   }
 });
 
@@ -51,7 +52,7 @@ const sendAlertEmailFlow = ai.defineFlow(
     
     try {
       const { output } = await ai.generate({
-        prompt: `Générez un court e-mail d'alerte professionnel. Température: ${input.temperature.toFixed(1)}°${input.unit}. Seuil: ${input.threshold}°${input.unit}.`,
+        prompt: `Générez un court e-mail d'alerte professionnel pour une institution. Température: ${input.temperature.toFixed(1)}°${input.unit}. Seuil: ${input.threshold}°${input.unit}. Soyez concis et formel.`,
       });
       if (output?.text) emailContent = output.text;
     } catch (e) {
@@ -60,14 +61,14 @@ const sendAlertEmailFlow = ai.defineFlow(
 
     try {
       await transporter.sendMail({
-        from: '"TempAlert" <benzartiahmedyassine@gmail.com>',
+        from: `"TempAlert ENIM" <${process.env.EMAIL_USER || "benzartiahmedyassine@gmail.com"}>`,
         to: input.recipientEmail,
-        subject: `🚨 ALERTE : ${input.temperature.toFixed(1)}°${input.unit}`,
+        subject: `🚨 ALERTE THERMIQUE : ${input.temperature.toFixed(1)}°${input.unit}`,
         text: emailContent,
       });
     } catch (error) {
       console.error("Email failed:", error);
-      throw new Error("Erreur d'envoi");
+      throw new Error("Erreur d'envoi de l'alerte e-mail");
     }
 
     return {

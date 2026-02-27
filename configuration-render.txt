@@ -1,0 +1,19 @@
+=== LISTE DES VARIABLES POUR RENDER ===
+Copiez ces clés et leurs valeurs dans l'onglet 'Environment' de Render :
+
+--- CONFIGURATION FIREBASE ---
+NEXT_PUBLIC_FIREBASE_API_KEY=votre_api_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=votre-projet.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=votre-id-projet
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=votre-projet.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=votre-sender-id
+NEXT_PUBLIC_FIREBASE_APP_ID=votre-app-id
+
+--- CONFIGURATION IA (GEMINI) ---
+GOOGLE_GENAI_API_KEY=votre_cle_gemini_gratuite
+
+--- CONFIGURATION ALERTE EMAIL (GMAIL) ---
+EMAIL_USER=benzartiahmedyassine@gmail.com
+EMAIL_PASS=ozhh jdsc ecyj tfsx
+
+Note : Les variables Firebase et Email sont cruciales pour que le dashboard et les alertes fonctionnent une fois l'application déployée.
