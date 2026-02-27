@@ -2,42 +2,63 @@
 
 import { firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore'
+import { getAuth, Auth } from 'firebase/auth';
+import { getFirestore, Firestore } from 'firebase/firestore';
 
-// IMPORTANT: DO NOT MODIFY THIS FUNCTION
-export function initializeFirebase() {
-  if (!getApps().length) {
-    // Important! initializeApp() is called without any arguments because Firebase App Hosting
-    // integrates with the initializeApp() function to provide the environment variables needed to
-    // populate the FirebaseOptions in production. It is critical that we attempt to call initializeApp()
-    // without arguments.
-    let firebaseApp;
-    try {
-      // Attempt to initialize via Firebase App Hosting environment variables
-      firebaseApp = initializeApp();
-    } catch (e) {
-      // Only warn in production because it's normal to use the firebaseConfig to initialize
-      // during development
-      if (process.env.NODE_ENV === "production") {
-        console.warn('Automatic initialization failed. Falling back to firebase config object.', e);
-      }
-      firebaseApp = initializeApp(firebaseConfig);
-    }
-
-    return getSdks(firebaseApp);
-  }
-
-  // If already initialized, return the SDKs with the already initialized App
-  return getSdks(getApp());
+export interface FirebaseSdks {
+  firebaseApp: FirebaseApp | null;
+  auth: Auth | null;
+  firestore: Firestore | null;
 }
 
-export function getSdks(firebaseApp: FirebaseApp) {
-  return {
-    firebaseApp,
-    auth: getAuth(firebaseApp),
-    firestore: getFirestore(firebaseApp)
-  };
+/**
+ * Initialise Firebase de manière sécurisée.
+ * Si les clés sont invalides ou manquantes, retourne des instances nulles
+ * au lieu de faire planter l'application.
+ */
+export function initializeFirebase(): FirebaseSdks {
+  // Vérification si la config semble valide (pas les valeurs par défaut ou vides)
+  const isConfigValid = !!firebaseConfig.apiKey && 
+                        firebaseConfig.apiKey !== 'votre_api_key' && 
+                        firebaseConfig.apiKey.length > 10;
+
+  try {
+    if (!getApps().length) {
+      let firebaseApp: FirebaseApp;
+      
+      try {
+        // Tentative via App Hosting (automatique en prod)
+        firebaseApp = initializeApp();
+      } catch (e) {
+        // Fallback sur le fichier config
+        if (!isConfigValid) {
+          console.warn("Firebase: Configuration manquante ou clé API invalide dans .env");
+          return { firebaseApp: null, auth: null, firestore: null };
+        }
+        firebaseApp = initializeApp(firebaseConfig);
+      }
+
+      return getSdks(firebaseApp);
+    }
+
+    return getSdks(getApp());
+  } catch (error) {
+    console.error("Erreur lors de l'initialisation Firebase:", error);
+    return { firebaseApp: null, auth: null, firestore: null };
+  }
+}
+
+export function getSdks(firebaseApp: FirebaseApp): FirebaseSdks {
+  try {
+    return {
+      firebaseApp,
+      auth: getAuth(firebaseApp),
+      firestore: getFirestore(firebaseApp)
+    };
+  } catch (error) {
+    console.error("Erreur lors de la récupération des SDKs:", error);
+    return { firebaseApp: null, auth: null, firestore: null };
+  }
 }
 
 export * from './provider';
