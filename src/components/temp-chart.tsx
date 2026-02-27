@@ -51,8 +51,8 @@ export function TempChart() {
   return (
     <Card className="w-full border-none shadow-lg bg-card/50 backdrop-blur">
       <CardHeader>
-        <CardTitle className="text-lg font-headline">Real-time Trends (Last 10)</CardTitle>
-        <CardDescription>Live data stored in Firestore</CardDescription>
+        <CardTitle className="text-lg font-headline">Tendances en Temps Réel (10 Derniers)</CardTitle>
+        <CardDescription>Données stockées en direct dans Firestore</CardDescription>
       </CardHeader>
       <CardContent className="h-[300px] w-full pr-4">
         {chartData.length === 0 ? (
@@ -67,7 +67,7 @@ export function TempChart() {
                 dataKey="timestamp" 
                 axisLine={false}
                 tickLine={false}
-                tickFormatter={(str) => new Date(str).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                tickFormatter={(str) => new Date(str).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                 style={{ fontSize: '10px' }}
               />
               <YAxis 
@@ -78,14 +78,14 @@ export function TempChart() {
               />
               <Tooltip 
                 contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                labelFormatter={(label) => new Date(label).toLocaleString()}
-                formatter={(value: number) => [`${value.toFixed(1)}°C`, 'Temperature']}
+                labelFormatter={(label) => new Date(label).toLocaleString('fr-FR')}
+                formatter={(value: number) => [`${value.toFixed(1)}°C`, 'Température']}
               />
               <ReferenceLine 
                 y={threshold} 
                 stroke="hsl(var(--accent))" 
                 strokeDasharray="3 3" 
-                label={{ value: 'Limit', position: 'right', fill: 'hsl(var(--accent))', fontSize: 10 }} 
+                label={{ value: 'Limite', position: 'right', fill: 'hsl(var(--accent))', fontSize: 10 }} 
               />
               <Line 
                 type="monotone" 

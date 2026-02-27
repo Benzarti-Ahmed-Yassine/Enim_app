@@ -9,8 +9,8 @@ export default function Dashboard() {
     <div className="space-y-6">
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold font-headline tracking-tight text-primary">Status Overview</h1>
-          <p className="text-muted-foreground">Live precision data from your connected sensors.</p>
+          <h1 className="text-3xl font-bold font-headline tracking-tight text-primary">Tableau de Bord</h1>
+          <p className="text-muted-foreground">Données de précision en direct de vos capteurs connectés.</p>
         </div>
       </header>
 
@@ -34,8 +34,8 @@ export default function Dashboard() {
               <CardContent className="pt-4 flex flex-col gap-2">
                 <ShieldCheck className="w-8 h-8 text-primary" />
                 <div>
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">System Status</p>
-                  <p className="text-sm font-bold">Encrypted & Online</p>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">État du Système</p>
+                  <p className="text-sm font-bold">Chiffré & En Ligne</p>
                 </div>
               </CardContent>
             </Card>
@@ -43,8 +43,8 @@ export default function Dashboard() {
               <CardContent className="pt-4 flex flex-col gap-2">
                 <Zap className="w-8 h-8 text-accent" />
                 <div>
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Network Latency</p>
-                  <p className="text-sm font-bold">12ms Response</p>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Latence Réseau</p>
+                  <p className="text-sm font-bold">Réponse 12ms</p>
                 </div>
               </CardContent>
             </Card>

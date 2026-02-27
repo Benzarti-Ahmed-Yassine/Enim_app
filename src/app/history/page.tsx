@@ -46,16 +46,16 @@ export default function HistoryPage() {
       <header className="space-y-1">
         <div className="flex items-center gap-2">
            <Database className="w-6 h-6 text-primary" />
-           <h1 className="text-3xl font-bold font-headline tracking-tight text-primary">Data Warehouse</h1>
+           <h1 className="text-3xl font-bold font-headline tracking-tight text-primary">Entrepôt de Données</h1>
         </div>
-        <p className="text-muted-foreground">Full historical logs retrieved from your private cloud database.</p>
+        <p className="text-muted-foreground">Historique complet extrait de votre base de données privée.</p>
       </header>
 
       <Card className="border-none shadow-xl">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="text-lg">Sensor Logs</CardTitle>
-            <p className="text-xs text-muted-foreground">{measurements?.length || 0} records found</p>
+            <CardTitle className="text-lg">Journaux des Capteurs</CardTitle>
+            <p className="text-xs text-muted-foreground">{measurements?.length || 0} enregistrements trouvés</p>
           </div>
           <Button 
             variant="outline" 
@@ -64,7 +64,7 @@ export default function HistoryPage() {
             className="gap-2"
           >
             {sortOrder === "desc" ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
-            {sortOrder === "desc" ? "Most Recent" : "Oldest First"}
+            {sortOrder === "desc" ? "Plus Récents" : "Plus Anciens"}
           </Button>
         </CardHeader>
         <CardContent>
@@ -76,23 +76,23 @@ export default function HistoryPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Timestamp</TableHead>
-                  <TableHead>Value</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Horodatage</TableHead>
+                  <TableHead>Valeur</TableHead>
+                  <TableHead>Statut</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {measurements.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell className="font-medium">
-                      {isMounted ? new Date(item.timestamp).toLocaleString() : "Loading..."}
+                      {isMounted ? new Date(item.timestamp).toLocaleString('fr-FR') : "Chargement..."}
                     </TableCell>
                     <TableCell className="font-bold text-lg">
                       {item.value.toFixed(1)}°C
                     </TableCell>
                     <TableCell>
                       {item.value > threshold ? (
-                        <Badge className="bg-accent text-white">Critical</Badge>
+                        <Badge className="bg-accent text-white">Critique</Badge>
                       ) : (
                         <Badge variant="secondary">Optimal</Badge>
                       )}
