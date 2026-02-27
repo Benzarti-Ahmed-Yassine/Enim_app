@@ -15,7 +15,7 @@ Pour que l'application fonctionne une fois déployée sur [Render](https://rende
 1. Allez dans le tableau de bord **Render**.
 2. Sélectionnez votre **Web Service**.
 3. Cliquez sur l'onglet **Environment**.
-4. Cliquez sur **Add Environment Variable** pour chaque ligne suivante :
+4. Cliquez sur **Add Environment Variable** pour chaque ligne suivante (copiez les valeurs depuis votre fichier `.env`) :
 
 | Clé (Key) | Valeur (Value) |
 | :--- | :--- |
