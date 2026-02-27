@@ -74,8 +74,6 @@ export default function LoginPage() {
             )}
           </div>
           <div className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-primary tracking-tight">ENIM Monastir</CardTitle>
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-[0.2em]">Excellence Académique</p>
           </div>
           <CardDescription className="flex items-center justify-center gap-2 text-amber-600 font-medium bg-amber-50 py-1.5 px-3 rounded-md border border-amber-100">
             <AlertCircle className="w-4 h-4" />
