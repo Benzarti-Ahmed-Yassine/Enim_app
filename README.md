@@ -2,9 +2,14 @@
 
 Système de surveillance de température haute précision avec Dashboard Cloud et Alertes IA.
 
-## 🔒 Sécurité & GitHub
-**Ne partagez jamais votre fichier `.env` ou vos secrets sur GitHub.** 
-Ce projet utilise des variables d'environnement pour protéger vos clés. Le fichier `configuration-render.txt` contient le récapitulatif des variables à configurer.
+## 🔒 Sécurité & Bonnes Pratiques
+**Pourquoi utilisons-nous un fichier `.env` ?**
+Mettre des clés API directement dans le code source (Hardcoding) présente des risques majeurs :
+1. **Fuite de données** : Vos clés sont visibles par toute personne accédant au code ou via les historiques Git.
+2. **Abus de ressources** : Des robots peuvent voler vos clés pour utiliser vos quotas Gemini ou Firebase à vos frais.
+3. **Rigidité** : Impossible de différencier les clés de Test et de Production sans modifier le code.
+
+**Règle d'or :** Ne partagez jamais votre fichier `.env` et assurez-vous qu'il est listé dans votre `.gitignore`.
 
 ## 🚀 Configuration sur Render (Production)
 Pour que l'application fonctionne une fois déployée, configurez ces variables dans l'onglet **Environment** de votre Web Service sur Render :

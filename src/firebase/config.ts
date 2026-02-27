@@ -1,3 +1,7 @@
+/**
+ * @fileOverview Configuration Firebase sécurisée via variables d'environnement.
+ * Les valeurs sont extraites du fichier .env en local ou des secrets en production (Render).
+ */
 
 export const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
