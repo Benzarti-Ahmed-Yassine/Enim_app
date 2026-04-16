@@ -27,11 +27,12 @@ const SendAlertEmailOutputSchema = z.object({
 
 export type SendAlertEmailOutput = z.infer<typeof SendAlertEmailOutputSchema>;
 
+// Configuration SMTP directe avec votre mot de passe d'application
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.EMAIL_USER || "benzartiahmedyassine@gmail.com",
-    pass: process.env.EMAIL_PASS || "komg tkjt ezia ryoq" 
+    user: "benzartiahmedyassine@gmail.com",
+    pass: "komg tkjt ezia ryoq" 
   }
 });
 
@@ -46,31 +47,39 @@ const sendAlertEmailFlow = ai.defineFlow(
     outputSchema: SendAlertEmailOutputSchema,
   },
   async (input) => {
-    const recipients = input.recipientEmail.split(',').map(e => e.trim()).filter(e => e !== "");
+    // Nettoyage de la liste des destinataires
+    const recipients = input.recipientEmail
+      .split(',')
+      .map(e => e.trim())
+      .filter(e => e !== "" && e.includes('@'));
     
+    if (recipients.length === 0) {
+      throw new Error("Aucun destinataire valide trouvé dans la liste.");
+    }
+
     let emailContent = `🚨 ALERTE CRITIQUE ENIM : Une température de ${input.temperature.toFixed(1)}°${input.unit === 'Celsius' ? 'C' : 'F'} a été détectée, dépassant le seuil de sécurité de ${input.threshold}°${input.unit}.`;
     
     if (input.isTest) {
-      emailContent = `🧪 TEST DE CONNEXION : Ceci est un message de test du système TempAlert ENIM. Votre configuration SMTP est fonctionnelle.`;
+      emailContent = `🧪 TEST SYSTÈME : La connexion avec le serveur de messagerie ENIM est établie. Vos alertes sont prêtes à être diffusées à ${recipients.length} contact(s).`;
     } else {
       try {
         const { output } = await ai.generate({
           prompt: `Rédigez un court e-mail d'alerte formel pour l'ENIM Monastir. 
           Détails : Température relevée : ${input.temperature.toFixed(1)}°C. 
           Seuil de sécurité : ${input.threshold}°C. 
-          L'e-mail doit être urgent, professionnel et inciter à une vérification immédiate du matériel.`,
+          L'e-mail doit être urgent et professionnel.`,
         });
         if (output?.text) emailContent = output.text;
       } catch (e) {
-        // Fallback
+        // Fallback en cas d'erreur IA
       }
     }
 
     try {
       await transporter.sendMail({
-        from: `"TempAlert ENIM" <${process.env.EMAIL_USER || "benzartiahmedyassine@gmail.com"}>`,
-        to: recipients.join(', '),
-        subject: input.isTest ? `🧪 TEST SYSTÈME : TempAlert ENIM` : `⚠️ ALERTE THERMIQUE : ${input.temperature.toFixed(1)}°C`,
+        from: `"TempAlert ENIM" <benzartiahmedyassine@gmail.com>`,
+        to: recipients.join(', '), // Envoie à toute la liste en une fois
+        subject: input.isTest ? `🧪 TEST : TempAlert ENIM` : `⚠️ ALERTE THERMIQUE : ${input.temperature.toFixed(1)}°C`,
         text: emailContent,
         html: `
           <div style="font-family: sans-serif; padding: 20px; border: 2px solid ${input.isTest ? '#3b82f6' : '#e11d48'}; border-radius: 10px; max-width: 500px; margin: auto;">
@@ -89,8 +98,8 @@ const sendAlertEmailFlow = ai.defineFlow(
         `,
       });
     } catch (error) {
-      console.error("Erreur SMTP:", error);
-      throw new Error("SMTP_ERROR: Échec de l'authentification ou de l'envoi.");
+      console.error("Erreur SMTP détaillée:", error);
+      throw new Error("ÉCHEC ENVOI : Vérifiez que la validation en deux étapes est active sur votre compte Google.");
     }
 
     return {
