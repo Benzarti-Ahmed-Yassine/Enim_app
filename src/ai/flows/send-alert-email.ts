@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview Flow Genkit pour l'envoi d'e-mails d'alerte.
- * Retour à la configuration directe.
+ * Utilise l'IA pour personnaliser le message et Nodemailer pour l'expédition.
  */
 
 import { ai } from '@/ai/genkit';
@@ -25,15 +25,12 @@ const SendAlertEmailOutputSchema = z.object({
 
 export type SendAlertEmailOutput = z.infer<typeof SendAlertEmailOutputSchema>;
 
-// Configuration du transporteur en dur
+// Configuration du transporteur (Utilise les variables d'env ou vos clés par défaut)
 const transporter = nodemailer.createTransport({
   service: "gmail",
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
   auth: {
-    user: "benzartiahmedyassine@gmail.com",
-    pass: "ozhh jdsc ecyj tfsx"
+    user: process.env.EMAIL_USER || "benzartiahmedyassine@gmail.com",
+    pass: process.env.EMAIL_PASS || "ozhh jdsc ecyj tfsx"
   }
 });
 
@@ -48,27 +45,42 @@ const sendAlertEmailFlow = ai.defineFlow(
     outputSchema: SendAlertEmailOutputSchema,
   },
   async (input) => {
-    let emailContent = `Attention, une température de ${input.temperature.toFixed(1)}°${input.unit === 'Celsius' ? 'C' : 'F'} a été détectée.`;
+    let emailContent = `🚨 ALERTE CRITIQUE ENIM : Une température de ${input.temperature.toFixed(1)}°${input.unit === 'Celsius' ? 'C' : 'F'} a été détectée, dépassant le seuil de sécurité de ${input.threshold}°${input.unit}.`;
     
     try {
+      // Utilisation de l'IA pour formuler un message plus institutionnel
       const { output } = await ai.generate({
-        prompt: `Générez un court e-mail d'alerte professionnel pour une institution. Température: ${input.temperature.toFixed(1)}°${input.unit}. Seuil: ${input.threshold}°${input.unit}. Soyez concis et formel.`,
+        prompt: `Rédigez un court e-mail d'alerte formel pour l'ENIM Monastir. 
+        Détails : Température relevée : ${input.temperature.toFixed(1)}°C. 
+        Seuil de sécurité : ${input.threshold}°C. 
+        L'e-mail doit être urgent, professionnel et inciter à une vérification immédiate du matériel.`,
       });
       if (output?.text) emailContent = output.text;
     } catch (e) {
-      console.warn("AI fallback used");
+      console.warn("Échec de la génération IA, utilisation du message de secours.");
     }
 
     try {
       await transporter.sendMail({
-        from: `"TempAlert ENIM" <benzartiahmedyassine@gmail.com>`,
+        from: `"TempAlert ENIM System" <${process.env.EMAIL_USER || "benzartiahmedyassine@gmail.com"}>`,
         to: input.recipientEmail,
-        subject: `🚨 ALERTE THERMIQUE : ${input.temperature.toFixed(1)}°${input.unit}`,
+        subject: `⚠️ ALERTE THERMIQUE CRITIQUE : ${input.temperature.toFixed(1)}°C`,
         text: emailContent,
+        html: `
+          <div style="font-family: sans-serif; padding: 20px; border: 2px solid #e11d48; border-radius: 10px;">
+            <h1 style="color: #e11d48;">Alerte de Sécurité Thermique</h1>
+            <p style="font-size: 16px; color: #334155;">${emailContent}</p>
+            <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+            <p style="font-size: 12px; color: #64748b;">
+              Ceci est un message automatique du système TempAlert - ENIM Monastir.<br>
+              Ne pas répondre à cet e-mail.
+            </p>
+          </div>
+        `,
       });
     } catch (error) {
-      console.error("Email failed:", error);
-      throw new Error("Erreur d'envoi de l'alerte e-mail");
+      console.error("Erreur Nodemailer:", error);
+      throw new Error("L'envoi de l'e-mail a échoué. Vérifiez vos identifiants.");
     }
 
     return {

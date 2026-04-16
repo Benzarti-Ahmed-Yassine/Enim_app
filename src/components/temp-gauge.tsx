@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from "react"
-import { Thermometer, Loader2, AlertTriangle, Send, Cpu } from "lucide-react"
+import { Thermometer, Loader2, AlertTriangle, Send, Cpu, Mail } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useFirestore, useUser, useDoc, useCollection, useMemoFirebase } from "@/firebase"
 import { doc, collection, query, orderBy, limit } from "firebase/firestore"
@@ -34,8 +34,6 @@ export function TempGauge() {
   const lastAlertTime = useRef<number>(0)
   
   const threshold = settings?.temperatureThreshold || 30
-  
-  // Supporte à la fois 'value' (app) et 'temperature' (ESP32)
   const currentTemp = latestData?.[0]?.value ?? latestData?.[0]?.temperature ?? null
   const isHigh = currentTemp !== null && currentTemp > threshold
 
@@ -44,11 +42,12 @@ export function TempGauge() {
 
     if (currentTemp > threshold) {
       const now = Date.now()
-      if (now - lastAlertTime.current > 120000) {
+      // Évite le spam : 1 alerte toutes les 5 minutes
+      if (now - lastAlertTime.current > 300000) {
         toast({
           variant: "destructive",
-          title: "🚨 Dépassement de seuil !",
-          description: `Température critique détectée : ${currentTemp.toFixed(1)}°C.`,
+          title: "🚨 SEUIL CRITIQUE DÉPASSÉ",
+          description: `Température actuelle : ${currentTemp.toFixed(1)}°C. Envoi des alertes en cours...`,
         })
         
         if (settings?.emailAlerts !== false && settings?.alertEmail) {
@@ -62,8 +61,18 @@ export function TempGauge() {
               threshold: threshold,
               unit: "Celsius"
             })
-          )).catch(err => {
-            console.error("Erreur e-mail:", err)
+          )).then(() => {
+             toast({
+               title: "📩 Alertes Envoyées",
+               description: `E-mails envoyés à ${recipients.length} destinataire(s).`,
+             })
+          }).catch(err => {
+            console.error("Erreur Backend Alert:", err)
+            toast({
+              variant: "destructive",
+              title: "❌ Échec d'envoi",
+              description: "Le service d'alerte backend n'a pas pu envoyer les e-mails.",
+            })
           }).finally(() => {
             setIsSendingAlert(false)
           })
@@ -94,7 +103,7 @@ export function TempGauge() {
         ) : (
           <div className="text-center px-4 animate-pulse">
             <Cpu className="w-10 h-10 mx-auto text-muted-foreground/30 mb-2" />
-            <p className="text-[11px] text-muted-foreground font-medium">Lien Hardware Inactif</p>
+            <p className="text-[11px] text-muted-foreground font-medium">Lien Matériel Inactif</p>
           </div>
         )}
         
@@ -104,16 +113,22 @@ export function TempGauge() {
             ÉTAT CRITIQUE
           </div>
         )}
+
+        {isSendingAlert && (
+          <div className="absolute top-2 right-2 p-2 bg-white rounded-full shadow-md animate-pulse">
+            <Mail className="w-4 h-4 text-primary" />
+          </div>
+        )}
       </div>
       
       <div className="text-center space-y-2">
         <div className="flex items-center justify-center gap-2">
            <div className={`w-2.5 h-2.5 rounded-full ${currentTemp !== null ? 'bg-green-500 animate-pulse' : 'bg-slate-300'}`} />
            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-             {currentTemp !== null ? 'Flux Réel Connecté' : 'Hors Ligne'}
+             {currentTemp !== null ? 'Flux Matériel Actif' : 'En attente du capteur'}
            </p>
         </div>
-        <p className="text-sm font-medium text-slate-600">Seuil : <span className="text-accent font-bold">{threshold.toFixed(1)}°C</span></p>
+        <p className="text-sm font-medium text-slate-600">Seuil Configuré : <span className="text-accent font-bold">{threshold.toFixed(1)}°C</span></p>
       </div>
     </div>
   )
