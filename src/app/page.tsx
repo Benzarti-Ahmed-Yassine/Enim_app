@@ -4,12 +4,9 @@ import { useState, useEffect } from "react";
 import { TempGauge } from "@/components/temp-gauge";
 import { TempChart } from "@/components/temp-chart";
 import { Card, CardContent } from "@/components/ui/card";
-import { ShieldCheck, Zap, Activity, Waves, Loader2, Database } from "lucide-react";
+import { ShieldCheck, Activity, Zap, Waves, Loader2, Database } from "lucide-react";
 import { useUser } from "@/firebase";
 
-/**
- * Tableau de Bord Principal - Version Institutionnelle ENIM (Production)
- */
 export default function Dashboard() {
   const [isMounted, setIsMounted] = useState(false);
   const { user } = useUser();
@@ -54,7 +51,6 @@ export default function Dashboard() {
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Jauge Principale */}
         <div className="lg:col-span-1">
           <Card className="h-full border-none shadow-xl bg-white relative overflow-hidden group">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-accent to-primary"></div>
@@ -64,7 +60,6 @@ export default function Dashboard() {
           </Card>
         </div>
         
-        {/* Graphique et Statistiques */}
         <div className="lg:col-span-2 space-y-6">
           <TempChart />
           
