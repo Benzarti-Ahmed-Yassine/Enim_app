@@ -1,23 +1,25 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Fonction utilitaire pour vérifier l'appartenance d'un document
+    // Vérifie si l'utilisateur est authentifié et est le propriétaire des données
     function isOwner(userId) {
       return request.auth != null && request.auth.uid == userId;
     }
 
+    // Déploiement forcé : Synchronisation avec le domaine enim.tn
     match /users/{userId} {
-      // Autorise l'accès complet aux réglages de l'utilisateur
+      
+      // Accès aux réglages (singleton 'current')
       match /settings/{document=**} {
         allow read, write: if isOwner(userId);
       }
 
-      // Autorise l'accès aux mesures de température
+      // Accès aux mesures de température
       match /temperatureMeasurements/{document=**} {
         allow read, write: if isOwner(userId);
       }
 
-      // Autorise l'accès aux logs d'alertes
+      // Accès aux logs d'alertes
       match /alertEvents/{document=**} {
         allow read, write: if isOwner(userId);
       }
