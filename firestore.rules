@@ -2,18 +2,19 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Tout le monde peut écrire et lire les mesures de température (pour test ESP32)
-    match /users/{userId}/temperatureMeasurements/{measurementId} {
-      allow create: if true;
-      allow read:   if true;
+    // Autorise l'accès complet aux paramètres uniquement pour l'utilisateur propriétaire
+    match /users/{userId}/settings/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Le reste est protégé ( catch-all par défaut à false )
+    // Garde l'accès libre pour les mesures de température (ESP32 et Dashboard)
+    match /users/{userId}/temperatureMeasurements/{measurementId} {
+      allow create, read, update, delete: if true;
+    }
+
+    // Protection par défaut pour le reste de la base de données
     match /{document=**} {
       allow read, write: if false;
     }
-    
-    // Déploiement forcé pour l'infrastructure ENIM
-    // Mise à jour : 2024-03-20
   }
 }
