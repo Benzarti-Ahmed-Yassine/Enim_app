@@ -25,17 +25,17 @@ const SendAlertEmailOutputSchema = z.object({
 
 export type SendAlertEmailOutput = z.infer<typeof SendAlertEmailOutputSchema>;
 
-// Configuration SMTP explicite pour Gmail (plus fiable en production)
+// Configuration SMTP explicite pour Gmail
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 465,
-  secure: true, // true pour le port 465
+  secure: true, 
   auth: {
     user: process.env.EMAIL_USER || "benzartiahmedyassine@gmail.com",
-    pass: process.env.EMAIL_PASS || "ozhh jdsc ecyj tfsx" // Ce code doit être un mot de passe d'application de 16 caractères
+    pass: process.env.EMAIL_PASS || "komg tkjt ezia ryoq" // Votre nouveau code d'application Google
   },
   tls: {
-    rejectUnauthorized: false // Permet d'éviter certains blocages réseau sur les hébergeurs
+    rejectUnauthorized: false 
   }
 });
 
@@ -53,7 +53,6 @@ const sendAlertEmailFlow = ai.defineFlow(
     let emailContent = `🚨 ALERTE CRITIQUE ENIM : Une température de ${input.temperature.toFixed(1)}°${input.unit === 'Celsius' ? 'C' : 'F'} a été détectée, dépassant le seuil de sécurité de ${input.threshold}°${input.unit}.`;
     
     try {
-      // Génération IA du message institutionnel
       const { output } = await ai.generate({
         prompt: `Rédigez un court e-mail d'alerte formel pour l'ENIM Monastir. 
         Détails : Température relevée : ${input.temperature.toFixed(1)}°C. 
@@ -98,7 +97,7 @@ const sendAlertEmailFlow = ai.defineFlow(
       });
     } catch (error) {
       console.error("Erreur Nodemailer détaillée:", error);
-      throw new Error("L'envoi de l'e-mail a échoué. Cause probable : Mot de passe d'application Google manquant ou incorrect.");
+      throw new Error("L'envoi de l'e-mail a échoué. Cause probable : Problème d'authentification SMTP avec le nouveau code.");
     }
 
     return {

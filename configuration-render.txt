@@ -1,23 +1,17 @@
-=== RÉCAPITULATIF POUR LE DÉPLOIEMENT (VERSION FINALE) ===
+=== RÉCAPITULATIF POUR LE DÉPLOIEMENT (VALEURS À JOUR) ===
 
-Pour que l'envoi d'e-mails fonctionne, vous DEVEZ utiliser un "Mot de passe d'application" Google.
+Votre système est maintenant configuré avec le nouveau mot de passe d'application.
 
-COMMENT OBTENIR VOTRE CODE DE 16 CARACTÈRES ?
---------------------------------------------
-1. Connectez-vous à votre compte Google (Gmail).
-2. Allez dans "Gérer votre compte Google" > Onglet "Sécurité".
-3. Activez la "Validation en deux étapes" (obligatoire).
-4. Une fois activée, recherchez la barre de recherche en haut et tapez "Mots de passe d'application".
-5. Donnez-lui un nom (ex: "ENIM TempAlert").
-6. Copiez le code de 16 caractères qui s'affiche (il n'a pas d'espaces, ex: "abcd efgh ijkl mnop").
-7. Collez ce code dans la variable EMAIL_PASS de votre hébergeur (Netlify ou Render).
-
-VARIABLES D'ENVIRONNEMENT À AJOUTER :
-------------------------------------
+VARIABLES D'ENVIRONNEMENT À AJOUTER SUR VOTRE HÉBERGEUR (RENDER/NETLIFY) :
+-------------------------------------------------------------------------
 EMAIL_USER = benzartiahmedyassine@gmail.com
-EMAIL_PASS = [VOTRE_CODE_DE_16_CARACTÈRES]
+EMAIL_PASS = komg tkjt ezia ryoq
 GOOGLE_GENAI_API_KEY = [VOTRE_CLÉ_GEMINI]
 
 PARAMÈTRES RÉSEAU :
 ------------------
-L'application utilise désormais le port 465 (SMTP Sécurisé) pour une meilleure compatibilité avec les pare-feu des hébergeurs cloud.
+Serveur : smtp.gmail.com
+Port : 465 (SSL/TLS sécurisé)
+
+NOTE IMPORTANTE :
+Si vous changez de mot de passe Google un jour, vous devrez générer un NOUVEAU code de 16 caractères pour remplacer "komg tkjt ezia ryoq".
