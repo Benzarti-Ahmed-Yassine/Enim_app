@@ -52,39 +52,28 @@ export function TempGauge() {
         
         if (settings?.emailAlerts !== false && settings?.alertEmail) {
           setIsSendingAlert(true)
-          const recipients = settings.alertEmail.split(',').map(e => e.trim()).filter(e => e !== "")
           
-          if (recipients.length > 0) {
-            // Utilisation de allSettled pour ne pas bloquer si un email est invalide
-            Promise.allSettled(recipients.map(recipient => 
-              sendAlertEmail({
-                recipientEmail: recipient,
-                temperature: currentTemp,
-                threshold: threshold,
-                unit: "Celsius"
+          sendAlertEmail({
+            recipientEmail: settings.alertEmail,
+            temperature: currentTemp,
+            threshold: threshold,
+            unit: "Celsius"
+          }).then((result) => {
+            if (result.success) {
+              toast({
+                title: "📩 Alertes Expédiées",
+                description: `Les ${result.recipientCount} destinataires ont été notifiés via Gemini.`,
               })
-            )).then((results) => {
-               const successCount = results.filter(r => r.status === 'fulfilled').length
-               const failCount = results.filter(r => r.status === 'rejected').length
-
-               if (successCount > 0) {
-                 toast({
-                   title: "📩 Alertes Expédiées",
-                   description: `${successCount} destinataire(s) notifié(s) avec succès.${failCount > 0 ? ` (${failCount} échec)` : ''}`,
-                 })
-               } else {
-                 toast({
-                   variant: "destructive",
-                   title: "❌ Échec Critique",
-                   description: "Aucun e-mail n'a pu être envoyé. Vérifiez votre configuration SMTP.",
-                 })
-               }
-            }).finally(() => {
-              setIsSendingAlert(false)
+            }
+          }).catch(() => {
+            toast({
+              variant: "destructive",
+              title: "❌ Échec Critique",
+              description: "Impossible d'envoyer les e-mails. Vérifiez votre configuration SMTP.",
             })
-          } else {
+          }).finally(() => {
             setIsSendingAlert(false)
-          }
+          })
         }
         lastAlertTime.current = now
       }

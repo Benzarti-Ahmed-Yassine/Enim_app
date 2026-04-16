@@ -8,10 +8,11 @@ import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Slider } from "@/components/ui/slider"
 import { useToast } from "@/hooks/use-toast"
-import { Settings as SettingsIcon, Mail, Save, Loader2, AlertCircle, Users } from "lucide-react"
+import { Settings as SettingsIcon, Mail, Save, Loader2, AlertCircle, Users, Send } from "lucide-react"
 import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase"
 import { doc } from "firebase/firestore"
 import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates"
+import { sendAlertEmail } from "@/ai/flows/send-alert-email"
 
 export default function SettingsPage() {
   const firestore = useFirestore()
@@ -29,6 +30,7 @@ export default function SettingsPage() {
   const [emailList, setEmailList] = useState("")
   const [emailAlerts, setEmailAlerts] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+  const [isTesting, setIsTesting] = useState(false)
 
   useEffect(() => {
     if (settings) {
@@ -39,21 +41,9 @@ export default function SettingsPage() {
   }, [settings])
 
   const handleSave = () => {
-    if (!user || !firestore) {
-      toast({ variant: "destructive", title: "Erreur", description: "Session introuvable." })
-      return
-    }
-
-    // Validation des emails
-    const emails = emailList.split(',').map(e => e.trim()).filter(e => e !== "")
-    if (emails.length > 5) {
-      toast({ variant: "destructive", title: "Limite atteinte", description: "Maximum 5 adresses e-mail autorisées pour la sécurité." })
-      return
-    }
-
+    if (!user || !firestore) return
     setIsSaving(true)
     const docRef = doc(firestore, "users", user.uid, "settings", "current")
-
     const payload = {
       id: "current",
       externalAuthId: user.uid,
@@ -64,30 +54,38 @@ export default function SettingsPage() {
       updatedAt: new Date().toISOString(),
       createdAt: settings?.createdAt || new Date().toISOString(),
     }
-
     setDocumentNonBlocking(docRef, payload, { merge: true })
-
     setTimeout(() => {
       setIsSaving(false)
-      toast({ title: "Configuration mise à jour", description: `Vos paramètres et vos ${emails.length} destinataire(s) ont été enregistrés.` })
+      toast({ title: "Sauvegardé", description: "Vos paramètres ont été mis à jour." })
     }, 600)
   }
 
-  if (isAuthLoading || (user && isDocLoading)) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    )
+  const handleTestEmail = async () => {
+    if (!emailList) {
+      toast({ variant: "destructive", title: "Erreur", description: "Veuillez saisir au moins un e-mail." })
+      return
+    }
+    setIsTesting(true)
+    try {
+      const result = await sendAlertEmail({
+        recipientEmail: emailList,
+        temperature: 0,
+        threshold: 0,
+        isTest: true
+      })
+      if (result.success) {
+        toast({ title: "Test Réussi", description: `E-mail de test envoyé à ${result.recipientCount} destinataire(s).` })
+      }
+    } catch (e) {
+      toast({ variant: "destructive", title: "Erreur de Test", description: "Impossible d'envoyer l'e-mail. Vérifiez vos identifiants." })
+    } finally {
+      setIsTesting(false)
+    }
   }
 
-  if (!user) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 gap-4">
-        <AlertCircle className="w-12 h-12 text-muted-foreground" />
-        <p className="text-muted-foreground">Accès restreint. Veuillez vous connecter.</p>
-      </div>
-    )
+  if (isAuthLoading || (user && isDocLoading)) {
+    return <div className="flex items-center justify-center h-64"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
   }
 
   return (
@@ -105,35 +103,17 @@ export default function SettingsPage() {
           <div className="h-1 bg-primary"></div>
           <CardHeader>
             <CardTitle className="text-lg">Paramètres Thermiques</CardTitle>
-            <CardDescription>Définissez la limite de température pour les alertes automatiques.</CardDescription>
+            <CardDescription>Seuil pour les alertes automatiques.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-8">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between gap-4">
-                <Label className="text-base font-semibold">Valeur du Seuil (°C)</Label>
-                <div className="flex items-center gap-2">
-                  <Input 
-                    type="number" 
-                    step="0.1"
-                    value={threshold} 
-                    onChange={(e) => setThreshold(Number(e.target.value))}
-                    className="w-24 text-center font-bold text-primary text-xl border-primary/30"
-                  />
-                  <span className="text-lg font-bold text-slate-400">°C</span>
-                </div>
+          <CardContent className="space-y-6">
+            <div className="flex items-center justify-between gap-4">
+              <Label className="text-base font-semibold">Seuil (°C)</Label>
+              <div className="flex items-center gap-2">
+                <Input type="number" step="0.1" value={threshold} onChange={(e) => setThreshold(Number(e.target.value))} className="w-24 text-center font-bold text-primary text-xl border-primary/30" />
+                <span className="text-lg font-bold text-slate-400">°C</span>
               </div>
-              <Slider
-                value={[threshold]}
-                onValueChange={(vals) => setThreshold(vals[0])}
-                min={0}
-                max={100}
-                step={0.5}
-                className="py-4"
-              />
-              <p className="text-[11px] text-muted-foreground text-center italic">
-                Toute mesure supérieure à ce seuil déclenchera l'IA et l'envoi des alertes.
-              </p>
             </div>
+            <Slider value={[threshold]} onValueChange={(vals) => setThreshold(vals[0])} min={0} max={100} step={0.5} />
           </CardContent>
         </Card>
 
@@ -144,45 +124,29 @@ export default function SettingsPage() {
               <Users className="w-5 h-5 text-accent" />
               Diffusion des Alertes
             </CardTitle>
-            <CardDescription>Gérez les destinataires des notifications par e-mail.</CardDescription>
+            <CardDescription>Gérez les destinataires des notifications.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
               <div className="flex items-center gap-3">
                 <Mail className="w-5 h-5 text-primary" />
-                <div>
-                  <p className="font-bold text-sm">Notifications E-mail</p>
-                  <p className="text-[10px] text-muted-foreground">Activer ou désactiver l'envoi groupé</p>
-                </div>
+                <p className="font-bold text-sm">Activer les e-mails</p>
               </div>
               <Switch checked={emailAlerts} onCheckedChange={setEmailAlerts} />
             </div>
-            
             <div className="space-y-3">
-              <Label htmlFor="email-input" className="font-bold">Liste de diffusion (Multi-destinataires)</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                <Input 
-                  id="email-input"
-                  type="text"
-                  placeholder="exemple1@enim.tn, exemple2@gmail.com" 
-                  className="pl-10 h-12"
-                  value={emailList}
-                  onChange={(e) => setEmailList(e.target.value)}
-                />
-              </div>
-              <div className="p-3 bg-blue-50/50 rounded-lg border border-blue-100">
-                <p className="text-[10px] text-blue-700 font-medium leading-relaxed">
-                  <strong>Note importante :</strong> Séparez chaque adresse par une <strong>virgule ( , )</strong>. 
-                  Chaque personne de la liste recevra une copie de l'alerte générée par l'IA Gemini.
-                </p>
-              </div>
+              <Label className="font-bold">Liste de diffusion (séparée par des virgules)</Label>
+              <Input placeholder="exemple1@enim.tn, exemple2@gmail.com" value={emailList} onChange={(e) => setEmailList(e.target.value)} />
             </div>
+            <Button variant="outline" className="w-full gap-2" onClick={handleTestEmail} disabled={isTesting}>
+              {isTesting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              Envoyer un e-mail de test
+            </Button>
           </CardContent>
-          <CardFooter className="bg-slate-50/80 py-4 flex justify-end gap-3 px-6">
-            <Button onClick={handleSave} disabled={isSaving} className="gap-2 px-10 font-bold">
-              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              Appliquer la Configuration
+          <CardFooter className="bg-slate-50/80 py-4 flex justify-end">
+            <Button onClick={handleSave} disabled={isSaving} className="px-10 font-bold">
+              {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+              Appliquer
             </Button>
           </CardFooter>
         </Card>
