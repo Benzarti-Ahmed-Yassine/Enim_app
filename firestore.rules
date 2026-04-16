@@ -1,12 +1,19 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Règle simplifiée pour garantir l'accès au propriétaire
-    match /users/{userId}/{document=**} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+    // Tout le monde peut écrire et lire les mesures de température (pour test ESP32)
+    match /users/{userId}/temperatureMeasurements/{measurementId} {
+      allow create: if true;
+      allow read:   if true;
+    }
+
+    // Le reste est protégé ( catch-all par défaut à false )
+    match /{document=**} {
+      allow read, write: if false;
     }
     
     // Déploiement forcé pour l'infrastructure ENIM
-    // Mise à jour : {{TIMESTAMP}}
+    // Mise à jour : 2024-03-20
   }
 }
