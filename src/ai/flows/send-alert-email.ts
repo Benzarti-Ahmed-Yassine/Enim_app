@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview Flow Genkit pour l'envoi d'e-mails d'alerte.
- * Utilise l'IA pour personnaliser le message et Nodemailer pour l'expédition via Gmail SMTP.
+ * Utilise l'IA pour personnaliser le message et Nodemailer pour l'expédition via Gmail.
  */
 
 import { ai } from '@/ai/genkit';
@@ -25,17 +25,12 @@ const SendAlertEmailOutputSchema = z.object({
 
 export type SendAlertEmailOutput = z.infer<typeof SendAlertEmailOutputSchema>;
 
-// Configuration SMTP explicite pour Gmail
+// Configuration SMTP optimisée pour Gmail avec votre nouveau code
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true, 
+  service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER || "benzartiahmedyassine@gmail.com",
-    pass: process.env.EMAIL_PASS || "komg tkjt ezia ryoq" // Votre nouveau code d'application Google
-  },
-  tls: {
-    rejectUnauthorized: false 
+    pass: process.env.EMAIL_PASS || "komg tkjt ezia ryoq" 
   }
 });
 
@@ -61,43 +56,30 @@ const sendAlertEmailFlow = ai.defineFlow(
       });
       if (output?.text) emailContent = output.text;
     } catch (e) {
-      console.warn("Échec de la génération IA, message par défaut utilisé.");
+      // Fallback si l'IA échoue
     }
 
     try {
       await transporter.sendMail({
-        from: `"TempAlert ENIM System" <${process.env.EMAIL_USER || "benzartiahmedyassine@gmail.com"}>`,
+        from: `"TempAlert ENIM" <${process.env.EMAIL_USER || "benzartiahmedyassine@gmail.com"}>`,
         to: input.recipientEmail,
-        subject: `⚠️ ALERTE THERMIQUE CRITIQUE : ${input.temperature.toFixed(1)}°C`,
+        subject: `⚠️ ALERTE THERMIQUE : ${input.temperature.toFixed(1)}°C`,
         text: emailContent,
         html: `
-          <div style="font-family: sans-serif; padding: 25px; border: 3px solid #e11d48; border-radius: 12px; max-width: 600px; margin: auto;">
-            <div style="text-align: center; margin-bottom: 20px;">
-              <h1 style="color: #e11d48; margin: 0; font-size: 24px; text-transform: uppercase;">Alerte de Sécurité Thermique</h1>
-              <p style="color: #64748b; font-weight: bold;">Laboratoire de l'ENIM Monastir</p>
+          <div style="font-family: sans-serif; padding: 20px; border: 2px solid #e11d48; border-radius: 10px; max-width: 500px;">
+            <h2 style="color: #e11d48; text-align: center;">Alerte Thermique Laboratoire</h2>
+            <div style="background: #fef2f2; padding: 15px; border-radius: 5px;">
+              <p style="font-size: 16px;">${emailContent}</p>
             </div>
-            <div style="background-color: #fef2f2; padding: 15px; border-radius: 8px; border-left: 5px solid #e11d48;">
-              <p style="font-size: 16px; color: #334155; line-height: 1.6; margin: 0;">${emailContent}</p>
-            </div>
-            <div style="margin-top: 25px; font-size: 14px; color: #475569;">
-              <p><strong>Détails du relevé :</strong></p>
-              <ul>
-                <li>Valeur : <span style="color: #e11d48; font-weight: bold;">${input.temperature.toFixed(1)}°C</span></li>
-                <li>Seuil d'alerte : ${input.threshold}°C</li>
-                <li>Date : ${new Date().toLocaleString('fr-FR')}</li>
-              </ul>
-            </div>
-            <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 25px 0;">
-            <p style="font-size: 11px; color: #94a3b8; text-align: center;">
-              Ceci est un message automatique généré par le système de surveillance TempAlert.<br>
-              Département Électronique - École Nationale d'Ingénieurs de Monastir.
+            <p style="font-size: 12px; color: #64748b; margin-top: 20px;">
+              Système de surveillance automatique ENIM Monastir.<br>
+              Date : ${new Date().toLocaleString('fr-FR')}
             </p>
           </div>
         `,
       });
     } catch (error) {
-      console.error("Erreur Nodemailer détaillée:", error);
-      throw new Error("L'envoi de l'e-mail a échoué. Cause probable : Problème d'authentification SMTP avec le nouveau code.");
+      throw new Error("SMTP_ERROR: Échec de l'authentification ou de l'envoi.");
     }
 
     return {

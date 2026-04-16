@@ -1,17 +1,19 @@
-=== RÉCAPITULATIF POUR LE DÉPLOIEMENT (VALEURS À JOUR) ===
+=== RÉCAPITULATIF POUR LE DÉPLOIEMENT (ACTIF) ===
 
-Votre système est maintenant configuré avec le nouveau mot de passe d'application.
+Le système est configuré pour utiliser votre nouveau mot de passe d'application Google.
 
-VARIABLES D'ENVIRONNEMENT À AJOUTER SUR VOTRE HÉBERGEUR (RENDER/NETLIFY) :
--------------------------------------------------------------------------
+VALEURS ACTUELLES :
+------------------
 EMAIL_USER = benzartiahmedyassine@gmail.com
 EMAIL_PASS = komg tkjt ezia ryoq
-GOOGLE_GENAI_API_KEY = [VOTRE_CLÉ_GEMINI]
 
-PARAMÈTRES RÉSEAU :
-------------------
-Serveur : smtp.gmail.com
-Port : 465 (SSL/TLS sécurisé)
+PARAMÈTRES RÉSEAU (GMAIL) :
+--------------------------
+Service : Gmail
+Authentification : SSL/TLS (Port 465 automatique)
 
-NOTE IMPORTANTE :
-Si vous changez de mot de passe Google un jour, vous devrez générer un NOUVEAU code de 16 caractères pour remplacer "komg tkjt ezia ryoq".
+DÉPANNAGE :
+-----------
+Si les e-mails ne partent toujours pas :
+1. Vérifiez que la validation en deux étapes est bien activée sur votre compte Google.
+2. Assurez-vous d'avoir bien copié les 16 caractères SANS espaces si vous les saisissez sur Netlify (komgtkjteziaryoq).
