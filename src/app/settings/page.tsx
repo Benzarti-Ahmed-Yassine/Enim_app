@@ -8,11 +8,10 @@ import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Slider } from "@/components/ui/slider"
 import { useToast } from "@/hooks/use-toast"
-import { Settings as SettingsIcon, Mail, Save, Loader2, AlertCircle, Users, Send } from "lucide-react"
+import { Settings as SettingsIcon, Mail, Save, Loader2, Users } from "lucide-react"
 import { useFirestore, useUser, useDoc, useMemoFirebase } from "@/firebase"
 import { doc } from "firebase/firestore"
 import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates"
-import { sendAlertEmail } from "@/ai/flows/send-alert-email"
 
 export default function SettingsPage() {
   const firestore = useFirestore()
@@ -30,7 +29,6 @@ export default function SettingsPage() {
   const [emailList, setEmailList] = useState("")
   const [emailAlerts, setEmailAlerts] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
-  const [isTesting, setIsTesting] = useState(false)
 
   useEffect(() => {
     if (settings) {
@@ -59,29 +57,6 @@ export default function SettingsPage() {
       setIsSaving(false)
       toast({ title: "Sauvegardé", description: "Vos paramètres ont été mis à jour." })
     }, 600)
-  }
-
-  const handleTestEmail = async () => {
-    if (!emailList) {
-      toast({ variant: "destructive", title: "Erreur", description: "Veuillez saisir au moins un e-mail." })
-      return
-    }
-    setIsTesting(true)
-    try {
-      const result = await sendAlertEmail({
-        recipientEmail: emailList,
-        temperature: 0,
-        threshold: 0,
-        isTest: true
-      })
-      if (result.success) {
-        toast({ title: "Test Réussi", description: `E-mail de test envoyé à ${result.recipientCount} destinataire(s).` })
-      }
-    } catch (e) {
-      toast({ variant: "destructive", title: "Erreur de Test", description: "Impossible d'envoyer l'e-mail. Vérifiez vos identifiants." })
-    } finally {
-      setIsTesting(false)
-    }
   }
 
   if (isAuthLoading || (user && isDocLoading)) {
@@ -138,10 +113,6 @@ export default function SettingsPage() {
               <Label className="font-bold">Liste de diffusion (séparée par des virgules)</Label>
               <Input placeholder="exemple1@enim.tn, exemple2@gmail.com" value={emailList} onChange={(e) => setEmailList(e.target.value)} />
             </div>
-            <Button variant="outline" className="w-full gap-2" onClick={handleTestEmail} disabled={isTesting}>
-              {isTesting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-              Envoyer un e-mail de test
-            </Button>
           </CardContent>
           <CardFooter className="bg-slate-50/80 py-4 flex justify-end">
             <Button onClick={handleSave} disabled={isSaving} className="px-10 font-bold">
