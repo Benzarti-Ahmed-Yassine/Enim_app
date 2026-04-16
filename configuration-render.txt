@@ -1,26 +1,23 @@
-=== RÉCAPITULATIF POUR LE DÉPLOIEMENT (RENDER) ===
+=== RÉCAPITULATIF POUR LE DÉPLOIEMENT (VERSION FINALE) ===
 
-Voici les variables d'environnement à ajouter dans l'onglet "Environment" de votre service sur Render.com :
+Pour que l'envoi d'e-mails fonctionne, vous DEVEZ utiliser un "Mot de passe d'application" Google.
 
-1.  NEXT_PUBLIC_FIREBASE_API_KEY
-2.  NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
-3.  NEXT_PUBLIC_FIREBASE_PROJECT_ID
-4.  NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
-5.  NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
-6.  NEXT_PUBLIC_FIREBASE_APP_ID
-7.  GOOGLE_GENAI_API_KEY
-8.  EMAIL_USER
-9.  EMAIL_PASS
+COMMENT OBTENIR VOTRE CODE DE 16 CARACTÈRES ?
+--------------------------------------------
+1. Connectez-vous à votre compte Google (Gmail).
+2. Allez dans "Gérer votre compte Google" > Onglet "Sécurité".
+3. Activez la "Validation en deux étapes" (obligatoire).
+4. Une fois activée, recherchez la barre de recherche en haut et tapez "Mots de passe d'application".
+5. Donnez-lui un nom (ex: "ENIM TempAlert").
+6. Copiez le code de 16 caractères qui s'affiche (il n'a pas d'espaces, ex: "abcd efgh ijkl mnop").
+7. Collez ce code dans la variable EMAIL_PASS de votre hébergeur (Netlify ou Render).
 
-=== OÙ TROUVER LES CLÉS FIREBASE ? ===
-1. Allez sur https://console.firebase.google.com/
-2. Cliquez sur la roue dentée (Paramètres) > "Paramètres du projet".
-3. Dans l'onglet "Général", descendez jusqu'à "Vos applications".
-4. Sélectionnez votre application Web.
-5. Copiez les valeurs affichées dans l'objet "firebaseConfig".
+VARIABLES D'ENVIRONNEMENT À AJOUTER :
+------------------------------------
+EMAIL_USER = benzartiahmedyassine@gmail.com
+EMAIL_PASS = [VOTRE_CODE_DE_16_CARACTÈRES]
+GOOGLE_GENAI_API_KEY = [VOTRE_CLÉ_GEMINI]
 
-=== OÙ TROUVER LE MOT DE PASSE EMAIL ? ===
-1. Allez sur votre compte Google > Sécurité.
-2. Activez la "Validation en deux étapes".
-3. Recherchez "Mots de passe d'application".
-4. Créez un mot de passe nommé "TempAlert" et copiez le code de 16 caractères.
+PARAMÈTRES RÉSEAU :
+------------------
+L'application utilise désormais le port 465 (SMTP Sécurisé) pour une meilleure compatibilité avec les pare-feu des hébergeurs cloud.
