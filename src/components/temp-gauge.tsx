@@ -19,7 +19,6 @@ export function TempGauge() {
 
   const { data: settings } = useDoc(settingsRef)
   
-  // Requête STRICTE pour écouter la toute dernière valeur réelle enregistrée dans Firestore
   const latestQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null
     return query(
@@ -36,17 +35,15 @@ export function TempGauge() {
   
   const threshold = settings?.temperatureThreshold || 30
   
-  // AUCUNE donnée aléatoire. Si Firestore est vide, on attend le capteur.
-  const currentTemp = latestData?.[0]?.value ?? null
+  // Supporte à la fois 'value' (app) et 'temperature' (ESP32)
+  const currentTemp = latestData?.[0]?.value ?? latestData?.[0]?.temperature ?? null
   const isHigh = currentTemp !== null && currentTemp > threshold
 
-  // Effet pour l'alerte automatique (E-mail)
   useEffect(() => {
     if (currentTemp === null || !user) return
 
     if (currentTemp > threshold) {
       const now = Date.now()
-      // Anti-spam de 2 minutes
       if (now - lastAlertTime.current > 120000) {
         toast({
           variant: "destructive",
@@ -65,18 +62,12 @@ export function TempGauge() {
               threshold: threshold,
               unit: "Celsius"
             })
-          )).then(() => {
-            toast({
-              title: "Alertes e-mail envoyées",
-              description: `Notification transmise à ${recipients.length} destinataire(s).`,
-            })
-          }).catch(err => {
-            console.error("Erreur d'envoi d'e-mail:", err)
+          )).catch(err => {
+            console.error("Erreur e-mail:", err)
           }).finally(() => {
             setIsSendingAlert(false)
           })
         }
-        
         lastAlertTime.current = now
       }
     }
@@ -85,7 +76,6 @@ export function TempGauge() {
   if (isDataLoading) return (
     <div className="h-64 flex flex-col items-center justify-center gap-2">
       <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      <p className="text-xs text-muted-foreground animate-pulse">Liaison base de données...</p>
     </div>
   )
 
@@ -97,15 +87,14 @@ export function TempGauge() {
         {currentTemp !== null ? (
           <>
             <span className={`text-6xl font-bold tracking-tighter ${isHigh ? 'text-accent' : 'text-primary'}`}>
-              {currentTemp.toFixed(1)}°
+              {Number(currentTemp).toFixed(1)}°
             </span>
             <span className="text-sm font-medium text-muted-foreground">Celsius</span>
           </>
         ) : (
           <div className="text-center px-4 animate-pulse">
             <Cpu className="w-10 h-10 mx-auto text-muted-foreground/30 mb-2" />
-            <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">Lien Hardware Inactif</p>
-            <p className="text-[9px] text-muted-foreground/60 italic mt-1">En attente de transmission Firestore...</p>
+            <p className="text-[11px] text-muted-foreground font-medium">Lien Hardware Inactif</p>
           </div>
         )}
         
@@ -113,13 +102,6 @@ export function TempGauge() {
           <div className="absolute -bottom-4 bg-accent text-white px-4 py-1.5 rounded-full text-xs font-bold animate-bounce flex items-center gap-2 shadow-lg">
             <AlertTriangle className="w-3.5 h-3.5" />
             ÉTAT CRITIQUE
-          </div>
-        )}
-        
-        {isSendingAlert && (
-          <div className="absolute top-4 bg-primary text-white px-3 py-1 rounded-full text-[10px] font-bold flex items-center gap-2 shadow-md">
-            <Send className="w-3 h-3 animate-pulse" />
-            ENVOI ALERTE IA...
           </div>
         )}
       </div>
@@ -131,7 +113,7 @@ export function TempGauge() {
              {currentTemp !== null ? 'Flux Réel Connecté' : 'Hors Ligne'}
            </p>
         </div>
-        <p className="text-sm font-medium text-slate-600">Seuil de sécurité : <span className="text-accent font-bold">{threshold.toFixed(1)}°C</span></p>
+        <p className="text-sm font-medium text-slate-600">Seuil : <span className="text-accent font-bold">{threshold.toFixed(1)}°C</span></p>
       </div>
     </div>
   )

@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useMemo, useState, useEffect } from "react"
@@ -29,7 +28,7 @@ export function TempChart() {
     return query(
       collection(firestore, "users", user.uid, "temperatureMeasurements"),
       orderBy("timestamp", "desc"),
-      limit(10)
+      limit(15)
     )
   }, [firestore, user])
 
@@ -37,7 +36,10 @@ export function TempChart() {
 
   const chartData = useMemo(() => {
     if (!rawData) return []
-    return [...rawData].reverse()
+    return [...rawData].reverse().map(d => ({
+      ...d,
+      displayVal: d.value ?? d.temperature ?? 0
+    }))
   }, [rawData])
 
   if (!isMounted || isLoading) {
@@ -51,8 +53,8 @@ export function TempChart() {
   return (
     <Card className="w-full border-none shadow-lg bg-card/50 backdrop-blur">
       <CardHeader>
-        <CardTitle className="text-lg font-headline">Tendances en Temps Réel (10 Derniers)</CardTitle>
-        <CardDescription>Données stockées en direct dans Firestore</CardDescription>
+        <CardTitle className="text-lg font-headline">Historique des Capteurs (ENIM)</CardTitle>
+        <CardDescription>Données temps réel provenant du matériel</CardDescription>
       </CardHeader>
       <CardContent className="h-[300px] w-full pr-4">
         {chartData.length === 0 ? (
@@ -67,19 +69,21 @@ export function TempChart() {
                 dataKey="timestamp" 
                 axisLine={false}
                 tickLine={false}
-                tickFormatter={(str) => new Date(str).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                tickFormatter={(str) => {
+                  try { return new Date(str).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }
+                  catch(e) { return "" }
+                }}
                 style={{ fontSize: '10px' }}
               />
               <YAxis 
-                domain={['dataMin - 2', 'dataMax + 2']} 
+                domain={['auto', 'auto']} 
                 axisLine={false}
                 tickLine={false}
                 style={{ fontSize: '10px' }}
               />
               <Tooltip 
-                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                 labelFormatter={(label) => new Date(label).toLocaleString('fr-FR')}
-                formatter={(value: number) => [`${value.toFixed(1)}°C`, 'Température']}
+                formatter={(value: number) => [`${Number(value).toFixed(1)}°C`, 'Température']}
               />
               <ReferenceLine 
                 y={threshold} 
@@ -89,7 +93,7 @@ export function TempChart() {
               />
               <Line 
                 type="monotone" 
-                dataKey="value" 
+                dataKey="displayVal" 
                 stroke="hsl(var(--primary))" 
                 strokeWidth={3} 
                 dot={{ r: 4, fill: "hsl(var(--primary))" }}

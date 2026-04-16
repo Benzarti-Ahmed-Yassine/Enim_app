@@ -1,28 +1,12 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Vérifie si l'utilisateur est authentifié et est le propriétaire des données
-    function isOwner(userId) {
-      return request.auth != null && request.auth.uid == userId;
+    // Règle simplifiée pour garantir l'accès au propriétaire
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
-
-    // Déploiement forcé : Synchronisation avec le domaine enim.tn
-    match /users/{userId} {
-      
-      // Accès aux réglages (singleton 'current')
-      match /settings/{document=**} {
-        allow read, write: if isOwner(userId);
-      }
-
-      // Accès aux mesures de température
-      match /temperatureMeasurements/{document=**} {
-        allow read, write: if isOwner(userId);
-      }
-
-      // Accès aux logs d'alertes
-      match /alertEvents/{document=**} {
-        allow read, write: if isOwner(userId);
-      }
-    }
+    
+    // Déploiement forcé pour l'infrastructure ENIM
+    // Mise à jour : {{TIMESTAMP}}
   }
 }

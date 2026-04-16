@@ -1,132 +1,44 @@
 {
   "entities": {
     "UserPreference": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "UserPreference",
       "type": "object",
-      "description": "Stores user-specific settings and configurations for the TempAlert application.",
       "properties": {
-        "id": {
-          "type": "string"
-        },
-        "externalAuthId": {
-          "type": "string"
-        },
-        "alertEmail": {
-          "type": "string",
-          "format": "email"
-        },
-        "temperatureThreshold": {
-          "type": "number"
-        },
-        "unitPreference": {
-          "type": "string"
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "externalAuthId",
-        "alertEmail",
-        "temperatureThreshold",
-        "unitPreference",
-        "createdAt"
-      ]
+        "id": { "type": "string" },
+        "externalAuthId": { "type": "string" },
+        "alertEmail": { "type": "string" },
+        "temperatureThreshold": { "type": "number" },
+        "unitPreference": { "type": "string" },
+        "emailAlerts": { "type": "boolean" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
     },
     "TemperatureMeasurement": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "TemperatureMeasurement",
       "type": "object",
       "properties": {
-        "id": {
-          "type": "string"
-        },
-        "ownerUserId": {
-          "type": "string"
-        },
-        "value": {
-          "type": "number"
-        },
-        "unit": {
-          "type": "string"
-        },
-        "timestamp": {
-          "type": "string",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "ownerUserId",
-        "value",
-        "unit",
-        "timestamp"
-      ]
-    },
-    "AlertEvent": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "AlertEvent",
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "ownerUserId": {
-          "type": "string"
-        },
-        "triggeredValue": {
-          "type": "number"
-        },
-        "thresholdSetAtTrigger": {
-          "type": "number"
-        },
-        "unitAtTrigger": {
-          "type": "string"
-        },
-        "alertEmailSentTo": {
-          "type": "string",
-          "format": "email"
-        },
-        "timestamp": {
-          "type": "string",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "ownerUserId",
-        "triggeredValue",
-        "thresholdSetAtTrigger",
-        "unitAtTrigger",
-        "alertEmailSentTo",
-        "timestamp"
-      ]
+        "id": { "type": "string" },
+        "ownerUserId": { "type": "string" },
+        "value": { "type": "number" },
+        "temperature": { "type": "number" },
+        "resistance": { "type": "number" },
+        "unit": { "type": "string" },
+        "timestamp": { "type": "string" }
+      }
     }
   },
   "auth": {
-    "providers": [
-      "password"
-    ]
+    "providers": ["password"]
   },
   "firestore": {
     "/users/{userId}/settings/current": {
       "schema": "UserPreference",
-      "description": "User singleton settings."
+      "description": "User settings"
     },
     "/users/{userId}/temperatureMeasurements/{measurementId}": {
       "schema": "TemperatureMeasurement",
-      "description": "Historical temperature readings."
-    },
-    "/users/{userId}/alertEvents/{alertEventId}": {
-      "schema": "AlertEvent",
-      "description": "Logs of triggered alerts."
+      "description": "Temperature data"
     }
   }
 }
